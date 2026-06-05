@@ -1,25 +1,17 @@
 [![CI - API Tests and Docker Build](https://github.com/AnarkeyV/chaos-engineering-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/AnarkeyV/chaos-engineering-sandbox/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-health%20API-009688.svg)](https://fastapi.tiangolo.com/)
-[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](https://www.docker.com/)
-[![Docker Compose](https://img.shields.io/badge/docker%20compose-API%20%7C%20PostgreSQL%20%7C%20Redis-2496ED.svg)](https://docs.docker.com/compose/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-dependency%20check-4169E1.svg)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-cache%20failure%20test-DC382D.svg)](https://redis.io/)
-[![Pytest](https://img.shields.io/badge/tests-pytest%20passing-success.svg)](https://docs.pytest.org/)
-[![GitHub Actions](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF.svg)](https://github.com/features/actions)
-[![Kubernetes](https://img.shields.io/badge/kubernetes-planned-326CE5.svg)](https://kubernetes.io/)
-[![Prometheus](https://img.shields.io/badge/prometheus-planned-E6522C.svg)](https://prometheus.io/)
-[![Grafana](https://img.shields.io/badge/grafana-planned-F46800.svg)](https://grafana.com/)
-[![Chaos Engineering](https://img.shields.io/badge/chaos%20engineering-first%20failure%20test-critical.svg)](#first-resilience-test)
-[![Status](https://img.shields.io/badge/project-active%20development-success.svg)](#current-project-status)
+[![FastAPI](https://img.shields.io/badge/FastAPI-health%20api-009688.svg)](https://fastapi.tiangolo.com/)
+[![Docker](https://img.shields.io/badge/docker-compose%20%7C%20image%20build-blue.svg)](https://www.docker.com/)
+[![Kubernetes](https://img.shields.io/badge/kubernetes-kind%20local%20cluster-326CE5.svg)](https://kubernetes.io/)
+[![PostgreSQL](https://img.shields.io/badge/postgresql-dependency%20check-336791.svg)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/redis-cache%20failure%20test-DC382D.svg)](https://redis.io/)
+[![Status](https://img.shields.io/badge/project-kubernetes%20resilience%20milestone-success.svg)](#current-project-status)
 
-# ⚡ Chaos Engineering Sandbox — DevOps Reliability Portfolio Project
+# ⚡ Chaos Engineering Sandbox — DevOps & Cloud Resilience Project
 
-A hands-on DevOps and Cloud Support portfolio project focused on **building, monitoring, breaking, recovering, and improving** a cloud-native system.
+A hands-on DevOps, Cloud Support, and Site Reliability Engineering portfolio project focused on **building, monitoring, breaking, recovering, and improving** a cloud-native system.
 
-This project demonstrates practical skills in **FastAPI, Docker, Docker Compose, PostgreSQL, Redis, automated testing, GitHub Actions CI, dependency readiness checks, and incident-style reliability documentation**.
-
-The long-term goal is to build a Kubernetes-based chaos engineering sandbox where controlled failures can be injected into a microservices environment, measured through observability tools, and documented through clear case studies.
+This project demonstrates how a small microservices-style application can be containerised with Docker, tested through GitHub Actions, deployed locally with Kubernetes using Kind, connected to PostgreSQL and Redis, and validated through controlled failure testing.
 
 ---
 
@@ -30,102 +22,107 @@ The long-term goal is to build a Kubernetes-based chaos engineering sandbox wher
 - [Why I Built This](#why-i-built-this)
 - [Key Features](#key-features)
 - [Architecture](#architecture)
-- [Current API Endpoints](#current-api-endpoints)
-- [Dependency Readiness Checks](#dependency-readiness-checks)
-- [First Resilience Test](#first-resilience-test)
 - [Tech Stack](#tech-stack)
-- [Local Development Setup](#local-development-setup)
-- [Run Tests](#run-tests)
+- [Application Endpoints](#application-endpoints)
+- [Local Development](#local-development)
+- [Automated Testing](#automated-testing)
 - [Docker Build and Local Test](#docker-build-and-local-test)
 - [Docker Compose Multi-Service Setup](#docker-compose-multi-service-setup)
+- [Dependency Readiness Checks](#dependency-readiness-checks)
+- [Kubernetes Local Deployment](#kubernetes-local-deployment)
+- [Kubernetes Resilience Tests](#kubernetes-resilience-tests)
+- [Incident Reports](#incident-reports)
 - [GitHub Actions CI](#github-actions-ci)
-- [Chaos Engineering Roadmap](#chaos-engineering-roadmap)
-- [Observability Roadmap](#observability-roadmap)
 - [Project Structure](#project-structure)
 - [DevOps and Cloud Skills Demonstrated](#devops-and-cloud-skills-demonstrated)
 - [Future Improvements](#future-improvements)
-- [Author](#author)
+- [Useful Commands](#useful-commands)
 - [License](#license)
 
 ---
 
 ## ✅ Current Project Status
 
-The project has completed the initial foundation, backend API setup, automated tests, Docker containerization, Docker Compose multi-service setup, PostgreSQL and Redis readiness checks, a manual Redis failure test, incident report documentation, and GitHub Actions CI validation.
+The project has completed the local Docker, Docker Compose, CI, Kubernetes deployment, and early resilience testing milestones.
 
 | Area | Status |
 |---|---|
 | Public GitHub repository | Completed |
-| Project structure | Completed |
 | Portfolio-style README | Updated |
+| Project roadmap documentation | Completed |
 | Architecture notes | Completed |
-| Project roadmap | Completed |
 | FastAPI backend service | Completed |
-| API health endpoint | Completed |
-| API readiness endpoint | Completed |
-| API status endpoint | Completed |
-| Work simulation endpoint | Completed |
-| Pytest automated tests | Completed |
-| `pytest.ini` configuration | Completed |
-| GitHub Actions test workflow | Completed |
-| GitHub Actions Docker build check | Completed |
-| Dockerfile for API service | Completed |
-| `.dockerignore` | Completed |
-| Docker Compose for API service | Completed |
-| PostgreSQL Docker Compose service | Completed |
-| Redis Docker Compose service | Completed |
-| PostgreSQL readiness check | Completed |
-| Redis readiness check | Completed |
+| API health/status/readiness endpoints | Completed |
+| pytest automated tests | Completed |
+| GitHub Actions CI | Passing |
+| Dockerfile | Completed |
+| Docker image build check in CI | Completed |
+| Docker Compose local setup | Completed |
+| PostgreSQL service | Added |
+| Redis service | Added |
+| Docker Compose health checks | Added |
+| API dependency checks for PostgreSQL and Redis | Completed |
 | Manual Redis failure test | Completed |
-| First incident report | Completed |
-| Kubernetes manifests | Planned |
-| Prometheus metrics | Planned |
-| Grafana dashboards | Planned |
-| Kubernetes chaos experiments | Planned |
-| Current working branch | `main` |
+| Local Kind Kubernetes cluster | Completed |
+| Kubernetes namespace | Completed |
+| Kubernetes API Deployment and Service | Completed |
+| Kubernetes PostgreSQL Deployment and Service | Completed |
+| Kubernetes Redis Deployment and Service | Completed |
+| Kubernetes liveness and readiness probes | Completed |
+| API pod failure test | Completed |
+| API replica improvement from 1 to 2 replicas | Completed |
+| Incident-style resilience reports | 3 reports completed |
+| Current API image version | `chaos-api:0.2.0` |
+| Current API replicas in Kubernetes | `2` |
 
 ---
 
 ## 📖 Project Overview
 
-The **Chaos Engineering Sandbox** is a learning and portfolio project that explores how modern cloud-native systems behave under failure.
+The Chaos Engineering Sandbox is a practical learning project designed to demonstrate how modern cloud-native systems behave under failure.
 
-Instead of only building an application that works under normal conditions, this project aims to answer more realistic engineering questions:
+Instead of only proving that an application works, this project focuses on:
 
-- What happens if a service crashes?
-- What happens if a dependency becomes unavailable?
-- What happens if response time becomes slow?
-- Can the system recover automatically?
-- How long does recovery take?
-- What metrics prove that recovery happened?
-- What should be improved after each failure test?
+```text
+Can the system detect failure?
+Can the system recover?
+Can we observe what happened?
+Can we improve the design after testing?
+Can we document the results clearly?
+```
 
-The project starts with a FastAPI backend and gradually evolves into a microservices-style environment with Docker, PostgreSQL, Redis, Kubernetes, Prometheus, Grafana, and controlled chaos experiments.
+The project begins with a small FastAPI service, then gradually evolves into a multi-service system with:
+
+- API service
+- PostgreSQL database dependency
+- Redis cache dependency
+- Docker containerisation
+- Docker Compose local orchestration
+- GitHub Actions CI
+- Kubernetes local deployment using Kind
+- Readiness and liveness probes
+- Manual failure tests
+- Incident-style documentation
 
 ---
 
 ## 🎯 Why I Built This
 
-I built this project to strengthen my DevOps and Cloud Support skills through a realistic reliability-focused workflow.
+I built this project to deepen my understanding of DevOps, Cloud Support, Kubernetes, observability, and reliability engineering.
 
-In real production environments, failure is unavoidable. Containers may restart, databases may slow down, cache services may become unavailable, networks may become unreliable, and users may be affected before engineers notice the problem.
+In real-world systems, failure is unavoidable.
 
-This sandbox gives me a safe environment to practise:
+Applications can crash. Containers can stop. Databases can become unavailable. Cache services can fail. Network latency can increase. Deployments can go wrong.
 
-- Building cloud-native services
-- Writing automated tests
-- Containerising applications
-- Running multiple services locally
-- Creating CI pipelines
-- Checking dependency readiness
-- Preparing Kubernetes deployments
-- Monitoring system behaviour
-- Injecting controlled failures
-- Measuring recovery time
-- Writing incident-style documentation
-- Improving the system after each test
+This sandbox allows me to safely test failure scenarios, observe system behavior, and document how the system recovers.
 
-The goal is to show not only that I can deploy an application, but that I can understand, troubleshoot, document, and improve system reliability.
+The goal is to build a portfolio project that demonstrates practical skills relevant to:
+
+- DevOps Engineer roles
+- Cloud Support Engineer roles
+- Platform Engineering roles
+- Site Reliability Engineering roles
+- Infrastructure and Operations roles
 
 ---
 
@@ -133,158 +130,169 @@ The goal is to show not only that I can deploy an application, but that I can un
 
 | Feature | Description |
 |---|---|
-| **FastAPI Backend** | Lightweight API service used as the first application component |
+| **FastAPI Backend** | Simple API service used for health, readiness, and failure testing |
 | **Health Endpoint** | `/health` confirms that the API process is alive |
 | **Readiness Endpoint** | `/ready` checks whether PostgreSQL and Redis are reachable |
-| **Status Endpoint** | `/status` shows feature and dependency status |
-| **Work Simulation Endpoint** | `/simulate-work` creates variable processing time for later monitoring |
-| **PostgreSQL Dependency** | Simulates a real database dependency |
-| **Redis Dependency** | Simulates a cache dependency and supports failure testing |
-| **Automated Tests** | Pytest validates all current API endpoints |
-| **Dockerized API** | API service can be built and run as a Docker container |
-| **Docker Compose Stack** | API, PostgreSQL, and Redis can run together with one command |
-| **GitHub Actions CI** | Automatically runs tests and Docker build checks on push |
-| **Incident Report Documentation** | First failure test documented as a reliability case study |
-| **Architecture Documentation** | Notes explain current and planned system design |
-| **Chaos Engineering Roadmap** | Planned experiments include pod kill, latency injection, Redis failure, and database failure |
+| **Status Endpoint** | `/status` shows service version, environment, features, and dependencies |
+| **Work Simulation Endpoint** | `/simulate-work` creates artificial processing delay |
+| **Automated Tests** | pytest validates API endpoints |
+| **GitHub Actions CI** | Runs tests and Docker image build checks on push |
+| **Dockerfile** | Packages the API as a container image |
+| **Docker Compose** | Runs API, PostgreSQL, and Redis together locally |
+| **Docker Compose Health Checks** | Tracks service health for API, PostgreSQL, and Redis |
+| **PostgreSQL Dependency** | Simulates a persistent database dependency |
+| **Redis Dependency** | Simulates a cache dependency |
+| **Manual Redis Failure Test** | Validates that the API detects Redis failure |
+| **Kind Kubernetes Cluster** | Runs Kubernetes locally using Docker |
+| **Kubernetes Manifests** | Deploys API, PostgreSQL, and Redis to Kubernetes |
+| **Liveness Probe** | Helps Kubernetes know whether the API is alive |
+| **Readiness Probe** | Helps Kubernetes know whether the API is ready for traffic |
+| **API Pod Failure Test** | Demonstrates Kubernetes pod recovery |
+| **Replica Improvement** | Scales API from 1 replica to 2 replicas for better resilience |
+| **Incident Reports** | Documents failure tests, results, lessons learned, and improvements |
 
 ---
 
 ## 🏗️ Architecture
 
-### Current Local Development Architecture
-
-```text
-┌────────────────────┐
-│ Local Developer    │
-│ VS Code + Git      │
-└─────────┬──────────┘
-          │ code + commit
-          ▼
-┌────────────────────┐
-│ FastAPI Backend    │
-│ app/api/main.py    │
-└─────────┬──────────┘
-          │ exposes
-          ▼
-┌────────────────────┐
-│ API Endpoints      │
-│ /health /ready     │
-│ /status /docs      │
-└────────────────────┘
-```
-
 ### Current Docker Compose Architecture
 
 ```text
-┌─────────────────────────────┐
-│ Local Machine               │
-│ Docker Desktop              │
-└──────────────┬──────────────┘
-               │ docker compose up --build
-               ▼
-┌─────────────────────────────┐
-│ Docker Compose Network      │
-├─────────────────────────────┤
-│ chaos-api                   │
-│ FastAPI + Uvicorn           │
-│ Port: 8000                  │
-├─────────────────────────────┤
-│ chaos-postgres              │
-│ PostgreSQL database         │
-│ Port: 5432                  │
-├─────────────────────────────┤
-│ chaos-redis                 │
-│ Redis cache                 │
-│ Port: 6379                  │
-└──────────────┬──────────────┘
-               │ browser / curl
-               ▼
-┌─────────────────────────────┐
-│ http://127.0.0.1:8000       │
-│ /health /ready /status      │
-└─────────────────────────────┘
+Local Machine
+│
+├── Docker Compose
+│   │
+│   ├── chaos-api
+│   │   ├── /health
+│   │   ├── /ready
+│   │   ├── /status
+│   │   └── /simulate-work
+│   │
+│   ├── chaos-postgres
+│   │   └── PostgreSQL database dependency
+│   │
+│   └── chaos-redis
+│       └── Redis cache dependency
+│
+└── Browser / curl
+    └── http://127.0.0.1:8000
 ```
 
-### Dependency Flow
+### Current Kubernetes Architecture
 
 ```text
-Browser / curl
-     │
-     ▼
-FastAPI API
-     │
-     ├── checks PostgreSQL with SELECT 1
-     │
-     └── checks Redis with PING
+Kind Local Kubernetes Cluster
+│
+└── Namespace: chaos-sandbox
+    │
+    ├── Deployment: chaos-api
+    │   ├── Replica 1: chaos-api pod
+    │   ├── Replica 2: chaos-api pod
+    │   ├── Liveness probe: /health
+    │   └── Readiness probe: /ready
+    │
+    ├── Service: chaos-api-service
+    │   └── ClusterIP service on port 8000
+    │
+    ├── Deployment: chaos-postgres
+    │   └── PostgreSQL pod
+    │
+    ├── Service: postgres
+    │   └── ClusterIP service on port 5432
+    │
+    ├── Deployment: chaos-redis
+    │   └── Redis pod
+    │
+    └── Service: redis
+        └── ClusterIP service on port 6379
 ```
 
-### Planned Kubernetes Architecture
+### Kubernetes Traffic Flow
 
 ```text
-┌────────────────────┐
-│ User / Browser     │
-└─────────┬──────────┘
-          │
-          ▼
-┌────────────────────┐
-│ Frontend Service   │
-└─────────┬──────────┘
-          │
-          ▼
-┌────────────────────┐
-│ Backend API        │
-│ FastAPI            │
-└──────┬───────┬─────┘
-       │       │
-       ▼       ▼
-┌──────────┐ ┌──────────┐
-│PostgreSQL│ │ Redis    │
-│Database  │ │ Cache    │
-└──────────┘ └──────────┘
-       │       │
-       └───┬───┘
-           ▼
-┌────────────────────┐
-│ Kubernetes Cluster │
-│ Probes + Services  │
-└─────────┬──────────┘
-          ▼
-┌────────────────────┐
-│ Observability      │
-│ Prometheus/Grafana │
-└─────────┬──────────┘
-          ▼
-┌────────────────────┐
-│ Chaos Experiments  │
-│ LitmusChaos/Mesh   │
-└────────────────────┘
+User / Browser
+ ↓
+kubectl port-forward
+ ↓
+chaos-api-service
+ ↓
+chaos-api pods
+ ↓
+PostgreSQL service
+ ↓
+PostgreSQL pod
+
+chaos-api pods
+ ↓
+Redis service
+ ↓
+Redis pod
+```
+
+### Resilience Testing Flow
+
+```text
+Deploy system
+ ↓
+Confirm healthy state
+ ↓
+Inject controlled failure
+ ↓
+Observe Kubernetes or API response
+ ↓
+Confirm recovery
+ ↓
+Document incident report
+ ↓
+Improve system design
 ```
 
 ---
 
-## 📡 Current API Endpoints
+## 🛠️ Tech Stack
+
+| Area | Technology |
+|---|---|
+| Backend API | Python, FastAPI |
+| API Server | Uvicorn |
+| Testing | pytest, FastAPI TestClient, httpx |
+| PostgreSQL Driver | Psycopg 3 |
+| Cache Client | redis-py |
+| Containers | Docker |
+| Local Multi-Service Runtime | Docker Compose |
+| CI | GitHub Actions |
+| Local Kubernetes | Kind |
+| Kubernetes CLI | kubectl |
+| Database | PostgreSQL |
+| Cache | Redis |
+| Documentation | Markdown |
+| Future Observability | Prometheus, Grafana |
+| Future Chaos Tooling | LitmusChaos or Chaos Mesh |
+
+---
+
+## 📡 Application Endpoints
 
 | Endpoint | Method | Purpose |
 |---|---|---|
-| `/` | `GET` | Root project message |
-| `/health` | `GET` | Confirms the API service is alive |
-| `/ready` | `GET` | Confirms whether API dependencies are reachable |
-| `/status` | `GET` | Shows current service, feature, and dependency status |
-| `/simulate-work` | `GET` | Simulates variable work for future monitoring tests |
-| `/docs` | `GET` | FastAPI interactive API documentation |
+| `/` | `GET` | Root endpoint with API message |
+| `/health` | `GET` | Confirms the API process is alive |
+| `/ready` | `GET` | Confirms API dependency readiness |
+| `/status` | `GET` | Shows API version, environment, features, and dependencies |
+| `/simulate-work` | `GET` | Simulates a small amount of processing work |
+| `/docs` | `GET` | FastAPI interactive documentation |
 
-Example `/health` response:
+### Example `/health` response
 
 ```json
 {
   "status": "healthy",
   "service": "chaos-api",
-  "timestamp": "2026-06-05T00:00:00+00:00"
+  "timestamp": "2026-06-05T09:00:00+00:00"
 }
 ```
 
-Example `/ready` response when all dependencies are reachable:
+### Example `/ready` response when dependencies are reachable
 
 ```json
 {
@@ -299,12 +307,11 @@ Example `/ready` response when all dependencies are reachable:
       "status": "reachable",
       "message": "Redis connection successful"
     }
-  },
-  "timestamp": "2026-06-05T00:00:00+00:00"
+  }
 }
 ```
 
-Example `/ready` response when Redis is stopped:
+### Example `/ready` response when Redis is unavailable
 
 ```json
 {
@@ -317,134 +324,51 @@ Example `/ready` response when Redis is stopped:
     },
     "cache": {
       "status": "unreachable",
-      "message": "Error 111 connecting to redis:6379. Connection refused."
+      "message": "Error connecting to Redis"
     }
-  },
-  "timestamp": "2026-06-05T00:00:00+00:00"
+  }
 }
 ```
 
 ---
 
-## 🔎 Dependency Readiness Checks
-
-The project now distinguishes between **health** and **readiness**.
-
-| Check | Endpoint | Meaning |
-|---|---|---|
-| Health check | `/health` | The API process is alive |
-| Readiness check | `/ready` | The API can reach its required dependencies |
-| Status check | `/status` | Shows feature flags and dependency details |
-
-This matters because a service can be alive but not ready.
-
-For example, if the API process is running but Redis is unavailable, `/health` can still return healthy while `/ready` correctly reports that the system is not ready.
-
-This mirrors real Kubernetes behaviour where readiness probes help prevent traffic from being sent to pods that are alive but not ready to serve requests.
-
----
-
-## 🧪 First Resilience Test
-
-The first manual failure test simulated a Redis cache outage.
-
-### Test Summary
-
-| Item | Result |
-|---|---|
-| Failure injected | Redis container stopped manually |
-| Command used | `docker stop chaos-redis` |
-| API stayed alive | Yes |
-| `/ready` detected Redis failure | Yes |
-| System changed to `not_ready` | Yes |
-| Redis restarted successfully | Yes |
-| System returned to `ready` | Yes |
-| Incident report created | Yes |
-
-### Failure Command
-
-```bash
-docker stop chaos-redis
-```
-
-### Recovery Command
-
-```bash
-docker start chaos-redis
-```
-
-### Incident Report
-
-The full report is documented here:
-
-```text
-docs/incident-reports/01-redis-manual-failure-test.md
-```
-
-This is the first portfolio evidence that the system can detect a dependency failure and report degraded readiness instead of pretending everything is fine.
-
----
-
-## 🛠️ Tech Stack
-
-| Area | Technology |
-|---|---|
-| Backend API | Python, FastAPI |
-| ASGI Server | Uvicorn |
-| Database | PostgreSQL |
-| Cache | Redis |
-| PostgreSQL Driver | Psycopg 3 |
-| Redis Client | redis-py |
-| Automated Testing | pytest, FastAPI TestClient, httpx |
-| Containers | Docker |
-| Local Multi-Service Runtime | Docker Compose |
-| CI | GitHub Actions |
-| Planned Orchestration | Kubernetes |
-| Planned Observability | Prometheus, Grafana |
-| Planned Chaos Tooling | LitmusChaos or Chaos Mesh |
-| Documentation | Markdown |
-
----
-
-## 💻 Local Development Setup
+## 💻 Local Development
 
 ### Prerequisites
 
-Install the following tools:
+Install the following:
 
 - Git
 - Python 3.12 or later
 - Docker Desktop
 - VS Code or another code editor
 
-> Note: The project CI uses Python 3.12. If your local machine uses a newer Python version and a package install fails, compare it against the CI version or recreate your virtual environment with Python 3.12.
-
-### 1. Clone the Repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/AnarkeyV/chaos-engineering-sandbox.git
 cd chaos-engineering-sandbox
 ```
 
-### 2. Create a Virtual Environment
+### 2. Create a virtual environment
 
 ```bash
 python3 -m venv .venv
 ```
 
-### 3. Activate the Virtual Environment
+### 3. Activate the virtual environment
 
 ```bash
 source .venv/bin/activate
 ```
 
-### 4. Install Dependencies
+### 4. Install dependencies
 
 ```bash
 pip install -r app/api/requirements.txt
 ```
 
-### 5. Run the API Locally with Python
+### 5. Run the API locally
 
 ```bash
 uvicorn app.api.main:app --reload --port 8000
@@ -456,7 +380,7 @@ Open:
 http://127.0.0.1:8000
 ```
 
-Useful links:
+Useful local URLs:
 
 ```text
 http://127.0.0.1:8000/health
@@ -466,13 +390,20 @@ http://127.0.0.1:8000/simulate-work
 http://127.0.0.1:8000/docs
 ```
 
-> When running only the API locally without Docker Compose, `/ready` may show PostgreSQL and Redis as unreachable. That is expected unless those services are also running locally.
+> Note: When running the API directly with Python, PostgreSQL and Redis may not be available unless they are also running locally. In that case, `/ready` may return `not_ready`. This is expected.
 
 ---
 
-## ✅ Run Tests
+## ✅ Automated Testing
 
-Run tests from the project root:
+Tests are located in:
+
+```text
+tests/
+└── test_api.py
+```
+
+Run tests locally:
 
 ```bash
 pytest
@@ -484,30 +415,36 @@ Expected result:
 5 passed
 ```
 
-The current tests validate:
+The tests validate:
 
-| Test Area | Coverage |
+| Test | Purpose |
 |---|---|
-| Root endpoint | Confirms project message and docs link |
-| Health endpoint | Confirms API process health response |
-| Readiness endpoint | Confirms dependency status structure |
-| Status endpoint | Confirms service, feature, and dependency structure |
-| Work simulation endpoint | Confirms simulated work response |
+| Root endpoint | Confirms `/` returns the correct API message |
+| Health endpoint | Confirms `/health` returns healthy status |
+| Ready endpoint | Confirms `/ready` returns dependency information |
+| Status endpoint | Confirms `/status` returns service and feature information |
+| Simulate work endpoint | Confirms `/simulate-work` returns a successful response |
 
 ---
 
 ## 🐳 Docker Build and Local Test
 
-### Build the Docker Image
+The API Dockerfile is located at:
 
-```bash
-docker build -t chaos-api:0.1.0 -f app/api/Dockerfile .
+```text
+app/api/Dockerfile
 ```
 
-### Run the Container
+Build the Docker image:
 
 ```bash
-docker run --name chaos-api-container -p 8000:8000 chaos-api:0.1.0
+docker build -t chaos-api:0.2.0 -f app/api/Dockerfile .
+```
+
+Run the container:
+
+```bash
+docker run --name chaos-api-container -p 8000:8000 chaos-api:0.2.0
 ```
 
 Open:
@@ -516,15 +453,13 @@ Open:
 http://127.0.0.1:8000/health
 ```
 
-### Stop the Container
-
-Press:
+Stop the container:
 
 ```text
 Control + C
 ```
 
-Then remove the container:
+Remove the container:
 
 ```bash
 docker rm chaos-api-container
@@ -534,15 +469,7 @@ docker rm chaos-api-container
 
 ## 🧱 Docker Compose Multi-Service Setup
 
-Docker Compose is the recommended way to run the current project locally because it starts the API, PostgreSQL, and Redis together.
-
-### Start the Full Stack
-
-```bash
-docker compose up --build
-```
-
-Expected containers:
+The Docker Compose file runs:
 
 ```text
 chaos-api
@@ -550,15 +477,25 @@ chaos-postgres
 chaos-redis
 ```
 
-### Check Running Containers
-
-Open a second terminal tab and run:
+Start the full local system:
 
 ```bash
-docker ps
+docker compose up --build
 ```
 
-### Test Readiness
+Check running containers:
+
+```bash
+docker compose ps
+```
+
+Expected services:
+
+```text
+chaos-api
+chaos-postgres
+chaos-redis
+```
 
 Open:
 
@@ -566,50 +503,297 @@ Open:
 http://127.0.0.1:8000/ready
 ```
 
-Expected dependency status:
+Expected result:
 
 ```text
-PostgreSQL: reachable
-Redis: reachable
+status: ready
+database: reachable
+cache: reachable
 ```
 
-### Test Status
-
-Open:
-
-```text
-http://127.0.0.1:8000/status
-```
-
-Expected feature status:
-
-```json
-"features": {
-  "database": true,
-  "cache": true,
-  "observability": false,
-  "chaos_experiments": false
-}
-```
-
-### Stop the Full Stack
-
-Press:
+Stop the system:
 
 ```text
 Control + C
 ```
 
-Then run:
+Clean up:
 
 ```bash
 docker compose down
 ```
 
-To remove the PostgreSQL volume as well, use this only when you intentionally want to delete local database data:
+### Docker Compose Health Checks
+
+The Compose setup includes health checks for:
+
+| Service | Health Check |
+|---|---|
+| API | Calls `/health` |
+| PostgreSQL | Runs `pg_isready` |
+| Redis | Runs `redis-cli ping` |
+
+This helps confirm that services are not only running, but also healthy.
+
+---
+
+## 🔍 Dependency Readiness Checks
+
+The API includes real dependency checks for PostgreSQL and Redis.
+
+### PostgreSQL check
+
+The API attempts to connect to PostgreSQL and run:
+
+```sql
+SELECT 1;
+```
+
+If successful, the database status becomes:
+
+```text
+reachable
+```
+
+### Redis check
+
+The API attempts to connect to Redis and run:
+
+```text
+PING
+```
+
+If successful, the cache status becomes:
+
+```text
+reachable
+```
+
+This distinction is important:
+
+| Endpoint | Meaning |
+|---|---|
+| `/health` | The API process is alive |
+| `/ready` | The API and its dependencies are ready |
+| `/status` | The API reports its environment, features, and dependency state |
+
+---
+
+## ☸️ Kubernetes Local Deployment
+
+This project uses **Kind** to run a local Kubernetes cluster.
+
+### 1. Create a Kind cluster
 
 ```bash
-docker compose down -v
+kind create cluster --name chaos-sandbox
+```
+
+Check the node:
+
+```bash
+kubectl get nodes
+```
+
+Expected result:
+
+```text
+STATUS
+Ready
+```
+
+### 2. Build the API image
+
+```bash
+docker build -t chaos-api:0.2.0 -f app/api/Dockerfile .
+```
+
+### 3. Load the image into Kind
+
+```bash
+kind load docker-image chaos-api:0.2.0 --name chaos-sandbox
+```
+
+### 4. Apply Kubernetes manifests
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/postgres-deployment.yaml
+kubectl apply -f k8s/postgres-service.yaml
+kubectl apply -f k8s/redis-deployment.yaml
+kubectl apply -f k8s/redis-service.yaml
+kubectl apply -f k8s/api-deployment.yaml
+kubectl apply -f k8s/api-service.yaml
+```
+
+### 5. Check pods
+
+```bash
+kubectl get pods -n chaos-sandbox
+```
+
+Expected result:
+
+```text
+chaos-api-xxxxx        1/1 Running
+chaos-api-yyyyy        1/1 Running
+chaos-postgres-xxxxx   1/1 Running
+chaos-redis-xxxxx      1/1 Running
+```
+
+### 6. Check Deployment
+
+```bash
+kubectl get deployment chaos-api -n chaos-sandbox
+```
+
+Expected current result:
+
+```text
+NAME        READY   UP-TO-DATE   AVAILABLE
+chaos-api   2/2     2            2
+```
+
+### 7. Access the API using port-forwarding
+
+```bash
+kubectl port-forward -n chaos-sandbox service/chaos-api-service 8000:8000
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000/ready
+```
+
+More details are documented in:
+
+[docs/kubernetes-local-deployment.md](docs/kubernetes-local-deployment.md)
+
+---
+
+## 🧪 Kubernetes Resilience Tests
+
+The project now includes early manual resilience tests.
+
+### Test 1: Redis Manual Failure Test
+
+Redis was stopped manually using Docker:
+
+```bash
+docker stop chaos-redis
+```
+
+Result:
+
+| Check | Result |
+|---|---|
+| API stayed alive | Yes |
+| Redis failure detected | Yes |
+| `/ready` changed to `not_ready` | Yes |
+| Redis recovery detected | Yes |
+
+Report:
+
+[docs/incident-reports/01-redis-manual-failure-test.md](docs/incident-reports/01-redis-manual-failure-test.md)
+
+---
+
+### Test 2: Kubernetes API Pod Failure Test
+
+The API pod was manually deleted:
+
+```bash
+kubectl delete pod <API_POD_NAME> -n chaos-sandbox
+```
+
+Result:
+
+| Check | Result |
+|---|---|
+| API pod deleted | Yes |
+| Kubernetes created a replacement pod | Yes |
+| Deployment returned to available state | Yes |
+| PostgreSQL remained running | Yes |
+| Redis remained running | Yes |
+
+Key evidence:
+
+```text
+Replicas: 1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+```
+
+Report:
+
+[docs/incident-reports/02-kubernetes-api-pod-failure-test.md](docs/incident-reports/02-kubernetes-api-pod-failure-test.md)
+
+---
+
+### Test 3: API Replica Resilience Improvement
+
+The API Deployment was improved from one replica to two replicas.
+
+Before:
+
+```yaml
+replicas: 1
+```
+
+After:
+
+```yaml
+replicas: 2
+```
+
+Current evidence:
+
+```text
+Replicas: 2 desired | 2 updated | 2 total | 2 available | 0 unavailable
+```
+
+Result:
+
+| Check | Result |
+|---|---|
+| API replica count increased | Yes |
+| Two API pods running | Yes |
+| Deployment returned `2/2` ready | Yes |
+| Resilience improved | Yes |
+
+Report:
+
+[docs/incident-reports/03-kubernetes-api-replica-resilience-improvement.md](docs/incident-reports/03-kubernetes-api-replica-resilience-improvement.md)
+
+---
+
+## 📄 Incident Reports
+
+Incident reports are stored in:
+
+```text
+docs/incident-reports/
+```
+
+Current reports:
+
+| Report | Description |
+|---|---|
+| [01 Redis Manual Failure Test](docs/incident-reports/01-redis-manual-failure-test.md) | Documents API behavior when Redis is stopped |
+| [02 Kubernetes API Pod Failure Test](docs/incident-reports/02-kubernetes-api-pod-failure-test.md) | Documents Kubernetes recovery after API pod deletion |
+| [03 Kubernetes API Replica Resilience Improvement](docs/incident-reports/03-kubernetes-api-replica-resilience-improvement.md) | Documents scaling API replicas from 1 to 2 |
+
+These reports follow an incident-style format:
+
+```text
+Experiment name
+Purpose
+Hypothesis
+Failure injected
+Expected result
+Actual result
+Recovery evidence
+Lessons learned
+Future improvement
 ```
 
 ---
@@ -622,97 +806,34 @@ The workflow file is located at:
 .github/workflows/ci.yml
 ```
 
-The current CI workflow runs on pushes and pull requests to `main`.
+The CI workflow runs on:
 
-Pipeline flow:
+```text
+push to main
+pull request to main
+```
+
+The workflow performs:
+
+1. Checkout repository
+2. Set up Python
+3. Install dependencies
+4. Run pytest
+5. Build Docker image
+
+Current workflow logic:
 
 ```text
 Code pushed to GitHub
  ↓
-Checkout repository
- ↓
-Set up Python 3.12
- ↓
-Install dependencies
- ↓
-Run pytest
+Run API tests
  ↓
 Build Docker image
  ↓
 Pass or fail workflow
 ```
 
-Current CI jobs:
-
-| Job | Purpose |
-|---|---|
-| `Run FastAPI Tests` | Runs pytest against the API |
-| `Build Docker Image` | Confirms the API Docker image can build successfully |
-
-This gives the repository an early DevOps quality gate before Kubernetes, observability, and chaos experiments are added.
-
----
-
-## 🔥 Chaos Engineering Roadmap
-
-The current Redis failure test is a manual dependency failure check. Later milestones will move into Kubernetes-based chaos experiments.
-
-| Experiment | Stage | Purpose |
-|---|---|---|
-| Redis manual failure | Completed | Confirm API readiness changes when cache fails |
-| API container restart | Planned | Observe API recovery after process/container restart |
-| PostgreSQL failure | Planned | Confirm API detects database outage |
-| API pod kill | Planned | Test Kubernetes pod recovery |
-| Redis pod kill | Planned | Test cache dependency failure inside Kubernetes |
-| Network latency injection | Planned | Measure slower service response |
-| CPU stress | Planned | Observe resource pressure impact |
-| Memory stress | Planned | Observe memory pressure and recovery |
-
-Each chaos experiment should include:
-
-```text
-Hypothesis
-Failure injected
-Expected result
-Actual result
-Recovery action
-Recovery time
-Lessons learned
-Improvement made
-```
-
----
-
-## 📊 Observability Roadmap
-
-Observability will be added before full chaos engineering experiments.
-
-Planned monitoring areas:
-
-| Area | Planned Tooling |
-|---|---|
-| Application metrics | Prometheus client metrics |
-| Container metrics | Docker/Kubernetes metrics |
-| Dashboards | Grafana |
-| Availability | Health and readiness panels |
-| Latency | Request duration panels |
-| Dependency status | PostgreSQL and Redis status indicators |
-| Recovery tracking | Failure and recovery timeline |
-
-Planned dashboard panels:
-
-```text
-API uptime
-Request count
-Request latency
-Error rate
-PostgreSQL readiness
-Redis readiness
-Pod restart count
-CPU usage
-Memory usage
-Recovery timeline
-```
+This validates that the API still works and the Docker image can be built successfully.
 
 ---
 
@@ -728,20 +849,29 @@ chaos-engineering-sandbox/
 ├── pytest.ini
 ├── app/
 │   ├── __init__.py
-│   ├── api/
-│   │   ├── __init__.py
-│   │   ├── main.py
-│   │   ├── requirements.txt
-│   │   └── Dockerfile
-│   └── frontend/
-├── docs/
-│   ├── project-roadmap.md
-│   ├── architecture-notes.md
-│   └── incident-reports/
-│       └── 01-redis-manual-failure-test.md
+│   └── api/
+│       ├── __init__.py
+│       ├── Dockerfile
+│       ├── main.py
+│       └── requirements.txt
 ├── tests/
 │   └── test_api.py
+├── docs/
+│   ├── architecture-notes.md
+│   ├── project-roadmap.md
+│   ├── kubernetes-local-deployment.md
+│   └── incident-reports/
+│       ├── 01-redis-manual-failure-test.md
+│       ├── 02-kubernetes-api-pod-failure-test.md
+│       └── 03-kubernetes-api-replica-resilience-improvement.md
 ├── k8s/
+│   ├── namespace.yaml
+│   ├── api-deployment.yaml
+│   ├── api-service.yaml
+│   ├── postgres-deployment.yaml
+│   ├── postgres-service.yaml
+│   ├── redis-deployment.yaml
+│   └── redis-service.yaml
 ├── observability/
 ├── chaos/
 ├── scripts/
@@ -756,47 +886,185 @@ chaos-engineering-sandbox/
 
 | Skill Area | Tools / Practices |
 |---|---|
-| Version Control | Git, GitHub, clean commits, public repo structure |
-| API Development | FastAPI, Uvicorn, health/readiness/status endpoints |
-| Automated Testing | pytest, FastAPI TestClient |
-| Dependency Management | Python requirements, virtual environment |
-| Containerisation | Dockerfile, Docker image build, local container run |
-| Multi-Service Runtime | Docker Compose with API, PostgreSQL, and Redis |
-| Database Connectivity | PostgreSQL readiness check using Psycopg 3 |
-| Cache Connectivity | Redis readiness check using ping |
-| CI/CD Foundation | GitHub Actions tests and Docker build validation |
-| Reliability Thinking | Health vs readiness distinction |
-| Failure Testing | Manual Redis outage and recovery test |
-| Incident Documentation | Incident-style report for dependency failure |
-| Portfolio Documentation | README, roadmap, architecture notes, incident reports |
+| Version Control | Git, GitHub, commits, public repository |
+| Documentation | README, architecture notes, roadmap, incident reports |
+| Backend Development | Python, FastAPI |
+| API Health Design | `/health`, `/ready`, `/status` |
+| Automated Testing | pytest |
+| CI | GitHub Actions |
+| Containerisation | Docker, Dockerfile |
+| Local Orchestration | Docker Compose |
+| Databases | PostgreSQL dependency check |
+| Caching | Redis dependency check |
+| Kubernetes | Kind, kubectl, Namespace, Deployment, Service |
+| Reliability | Liveness probes, readiness probes, replicas |
+| Failure Testing | Redis failure, API pod deletion |
+| Recovery Analysis | Kubernetes desired state and pod recreation |
+| Resilience Improvement | API scaled from 1 replica to 2 replicas |
+| Incident Documentation | Failure reports, lessons learned, improvements |
+| Cloud Support Thinking | Diagnosis, dependency checks, recovery evidence |
+| SRE Thinking | Availability, readiness, resilience, MTTR preparation |
 
 ---
 
 ## 🔮 Future Improvements
 
-Planned next improvements:
+Planned next steps:
 
-- Add PostgreSQL sample table and simple database read/write route
-- Add Redis-backed cache route
-- Add Prometheus-compatible metrics endpoint
-- Add Grafana dashboard package
-- Add Kubernetes manifests for API, PostgreSQL, and Redis
-- Add Kubernetes liveness and readiness probes
-- Add Kubernetes namespace separation
-- Add first Kubernetes pod kill experiment
-- Add automated incident report templates
-- Add screenshots of failure and recovery evidence
-- Add architecture diagram using draw.io
-- Add optional Azure AKS or Google GKE deployment
-- Add GitHub Actions Docker image publishing later
+- Repeat pod failure test with two API replicas while continuously sending requests.
+- Add a simple request loop script to observe availability during failure.
+- Add Kubernetes Redis failure test.
+- Add Kubernetes PostgreSQL failure test.
+- Add Prometheus for metrics collection.
+- Add Grafana dashboards.
+- Add application metrics endpoint.
+- Add visual screenshots to documentation.
+- Add LitmusChaos or Chaos Mesh for automated chaos experiments.
+- Add Helm charts.
+- Add Azure AKS deployment.
+- Add Google Kubernetes Engine or Cloud Run optional deployment.
+- Add alerting rules for failure detection.
+- Add MTTR measurement.
+- Add service-level indicators such as availability and latency.
+- Add a final case study report.
 
 ---
 
-## 👤 Author
+## 🧰 Useful Commands
 
-**Khairul Rizal**
+### Run tests
 
-DevOps and Cloud Support learner building practical portfolio projects focused on cloud-native systems, automation, reliability, and resilience engineering.
+```bash
+pytest
+```
+
+### Run Docker Compose
+
+```bash
+docker compose up --build
+```
+
+### Stop Docker Compose
+
+```bash
+docker compose down
+```
+
+### Create Kind cluster
+
+```bash
+kind create cluster --name chaos-sandbox
+```
+
+### Build API image
+
+```bash
+docker build -t chaos-api:0.2.0 -f app/api/Dockerfile .
+```
+
+### Load image into Kind
+
+```bash
+kind load docker-image chaos-api:0.2.0 --name chaos-sandbox
+```
+
+### Apply Kubernetes manifests
+
+```bash
+kubectl apply -f k8s/
+```
+
+### Check Kubernetes pods
+
+```bash
+kubectl get pods -n chaos-sandbox
+```
+
+### Check Kubernetes services
+
+```bash
+kubectl get svc -n chaos-sandbox
+```
+
+### Check API Deployment
+
+```bash
+kubectl get deployment chaos-api -n chaos-sandbox
+```
+
+### Describe API Deployment
+
+```bash
+kubectl describe deployment chaos-api -n chaos-sandbox
+```
+
+### Port-forward API service
+
+```bash
+kubectl port-forward -n chaos-sandbox service/chaos-api-service 8000:8000
+```
+
+### Delete one API pod for testing
+
+```bash
+kubectl delete pod <API_POD_NAME> -n chaos-sandbox
+```
+
+### Watch pods recover
+
+```bash
+kubectl get pods -n chaos-sandbox -w
+```
+
+---
+
+## 🧠 Key Learning Summary
+
+This project currently demonstrates the following learning journey:
+
+```text
+Create a basic API
+ ↓
+Add automated tests
+ ↓
+Add CI with GitHub Actions
+ ↓
+Containerise the API
+ ↓
+Run services with Docker Compose
+ ↓
+Add PostgreSQL and Redis dependencies
+ ↓
+Add readiness checks
+ ↓
+Simulate Redis failure
+ ↓
+Deploy to local Kubernetes
+ ↓
+Configure liveness and readiness probes
+ ↓
+Delete API pod manually
+ ↓
+Observe Kubernetes recovery
+ ↓
+Scale API from 1 replica to 2 replicas
+ ↓
+Document resilience improvement
+```
+
+This makes the project more than a basic deployment exercise.
+
+It shows the full DevOps and reliability cycle:
+
+```text
+Build
+Test
+Deploy
+Break
+Recover
+Improve
+Document
+```
 
 ---
 
@@ -804,10 +1072,12 @@ DevOps and Cloud Support learner building practical portfolio projects focused o
 
 This project is licensed under the MIT License.
 
-See the `LICENSE` file for details.
+See:
+
+[LICENSE](LICENSE)
 
 ---
 
-Built as part of a DevOps and Cloud Support learning journey.
+Built by **Khairul Rizal** as a DevOps, Cloud Support, and resilience engineering portfolio project.
 
 Last updated: June 2026
