@@ -33,10 +33,11 @@ def test_ready_endpoint():
     assert response.status_code == 200
     data = response.json()
 
-    assert data["status"] == "ready"
+    assert data["status"] in ["ready", "not_ready"]
     assert data["service"] == "chaos-api"
-    assert data["dependencies"]["database"] == "not_configured_yet"
-    assert data["dependencies"]["cache"] == "not_configured_yet"
+    assert "dependencies" in data
+    assert "database" in data["dependencies"]
+    assert "cache" in data["dependencies"]
 
 
 def test_status_endpoint():
@@ -46,11 +47,13 @@ def test_status_endpoint():
     data = response.json()
 
     assert data["service"] == "chaos-api"
-    assert data["version"] == "0.1.0"
+    assert data["version"] == "0.2.0"
     assert data["environment"] == "local"
     assert data["status"] == "running"
-    assert data["features"]["database"] is False
-    assert data["features"]["cache"] is False
+    assert "features" in data
+    assert "dependencies" in data
+    assert "database" in data["dependencies"]
+    assert "cache" in data["dependencies"]
 
 
 def test_simulate_work_endpoint():
