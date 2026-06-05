@@ -5,7 +5,8 @@
 [![Kubernetes](https://img.shields.io/badge/kubernetes-kind%20local%20cluster-326CE5.svg)](https://kubernetes.io/)
 [![PostgreSQL](https://img.shields.io/badge/postgresql-dependency%20check-336791.svg)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/redis-cache%20failure%20test-DC382D.svg)](https://redis.io/)
-[![Status](https://img.shields.io/badge/project-kubernetes%20resilience%20milestone-success.svg)](#current-project-status)
+[![Availability Test](https://img.shields.io/badge/availability%20test-60%2F60%20HTTP%20200-success.svg)](#two-replica-availability-test)
+[![Status](https://img.shields.io/badge/project-kubernetes%20resilience%20validated-success.svg)](#current-project-status)
 
 # ⚡ Chaos Engineering Sandbox — DevOps & Cloud Resilience Project
 
@@ -31,6 +32,7 @@ This project demonstrates how a small microservices-style application can be con
 - [Dependency Readiness Checks](#dependency-readiness-checks)
 - [Kubernetes Local Deployment](#kubernetes-local-deployment)
 - [Kubernetes Resilience Tests](#kubernetes-resilience-tests)
+- [Two-Replica Availability Test](#two-replica-availability-test)
 - [Incident Reports](#incident-reports)
 - [GitHub Actions CI](#github-actions-ci)
 - [Project Structure](#project-structure)
@@ -71,7 +73,8 @@ The project has completed the local Docker, Docker Compose, CI, Kubernetes deplo
 | Kubernetes liveness and readiness probes | Completed |
 | API pod failure test | Completed |
 | API replica improvement from 1 to 2 replicas | Completed |
-| Incident-style resilience reports | 3 reports completed |
+| Two-replica live availability test | Passed — 60/60 HTTP 200 responses |
+| Incident-style resilience reports | 4 reports completed |
 | Current API image version | `chaos-api:0.2.0` |
 | Current API replicas in Kubernetes | `2` |
 
@@ -88,6 +91,7 @@ Can the system detect failure?
 Can the system recover?
 Can we observe what happened?
 Can we improve the design after testing?
+Can users still reach the service while recovery happens?
 Can we document the results clearly?
 ```
 
@@ -103,6 +107,7 @@ The project begins with a small FastAPI service, then gradually evolves into a m
 - Readiness and liveness probes
 - Manual failure tests
 - Incident-style documentation
+- Availability validation during pod failure
 
 ---
 
@@ -114,7 +119,7 @@ In real-world systems, failure is unavoidable.
 
 Applications can crash. Containers can stop. Databases can become unavailable. Cache services can fail. Network latency can increase. Deployments can go wrong.
 
-This sandbox allows me to safely test failure scenarios, observe system behavior, and document how the system recovers.
+This sandbox allows me to safely test failure scenarios, observe system behavior, improve the design, and document how the system recovers.
 
 The goal is to build a portfolio project that demonstrates practical skills relevant to:
 
@@ -149,6 +154,7 @@ The goal is to build a portfolio project that demonstrates practical skills rele
 | **Readiness Probe** | Helps Kubernetes know whether the API is ready for traffic |
 | **API Pod Failure Test** | Demonstrates Kubernetes pod recovery |
 | **Replica Improvement** | Scales API from 1 replica to 2 replicas for better resilience |
+| **Live Availability Test** | Sends 60 requests while deleting one API pod |
 | **Incident Reports** | Documents failure tests, results, lessons learned, and improvements |
 
 ---
@@ -210,19 +216,19 @@ Kind Local Kubernetes Cluster
 ### Kubernetes Traffic Flow
 
 ```text
-User / Browser
+User / Browser / curl loop
  ↓
 kubectl port-forward
  ↓
 chaos-api-service
  ↓
-chaos-api pods
+available chaos-api pod
  ↓
 PostgreSQL service
  ↓
 PostgreSQL pod
 
-chaos-api pods
+chaos-api pod
  ↓
 Redis service
  ↓
@@ -238,11 +244,11 @@ Confirm healthy state
  ↓
 Inject controlled failure
  ↓
-Observe Kubernetes or API response
+Send or observe requests during failure
  ↓
 Confirm recovery
  ↓
-Document incident report
+Document evidence
  ↓
 Improve system design
 ```
@@ -306,25 +312,6 @@ Improve system design
     "cache": {
       "status": "reachable",
       "message": "Redis connection successful"
-    }
-  }
-}
-```
-
-### Example `/ready` response when Redis is unavailable
-
-```json
-{
-  "status": "not_ready",
-  "service": "chaos-api",
-  "dependencies": {
-    "database": {
-      "status": "reachable",
-      "message": "PostgreSQL connection successful"
-    },
-    "cache": {
-      "status": "unreachable",
-      "message": "Error connecting to Redis"
     }
   }
 }
@@ -766,6 +753,60 @@ Report:
 
 ---
 
+## 🟢 Two-Replica Availability Test
+
+The latest resilience test continuously sent requests to the API while one API pod was deleted.
+
+Command used:
+
+```bash
+for i in {1..60}; do
+  echo -n "Request $i: "
+  curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/health
+  sleep 1
+done
+```
+
+While the loop was running, one API pod was deleted:
+
+```bash
+kubectl delete pod <ONE_API_POD_NAME> -n chaos-sandbox
+```
+
+Result:
+
+| Metric | Result |
+|---|---|
+| Total requests | `60` |
+| Successful responses | `60` |
+| Failed responses | `0` |
+| Success rate | `100%` |
+| Endpoint tested | `/health` |
+| HTTP success code | `200` |
+| API replicas | `2` |
+
+Key result:
+
+```text
+Request 1: 200
+...
+Request 60: 200
+```
+
+Deployment evidence after recovery:
+
+```text
+Replicas: 2 desired | 2 updated | 2 total | 2 available | 0 unavailable
+```
+
+This proves that the API remained reachable from the test client while Kubernetes replaced the deleted pod.
+
+Report:
+
+[docs/incident-reports/04-two-replica-api-availability-test.md](docs/incident-reports/04-two-replica-api-availability-test.md)
+
+---
+
 ## 📄 Incident Reports
 
 Incident reports are stored in:
@@ -781,6 +822,7 @@ Current reports:
 | [01 Redis Manual Failure Test](docs/incident-reports/01-redis-manual-failure-test.md) | Documents API behavior when Redis is stopped |
 | [02 Kubernetes API Pod Failure Test](docs/incident-reports/02-kubernetes-api-pod-failure-test.md) | Documents Kubernetes recovery after API pod deletion |
 | [03 Kubernetes API Replica Resilience Improvement](docs/incident-reports/03-kubernetes-api-replica-resilience-improvement.md) | Documents scaling API replicas from 1 to 2 |
+| [04 Two-Replica API Availability Test](docs/incident-reports/04-two-replica-api-availability-test.md) | Documents 60/60 successful requests during pod failure |
 
 These reports follow an incident-style format:
 
@@ -863,7 +905,8 @@ chaos-engineering-sandbox/
 │   └── incident-reports/
 │       ├── 01-redis-manual-failure-test.md
 │       ├── 02-kubernetes-api-pod-failure-test.md
-│       └── 03-kubernetes-api-replica-resilience-improvement.md
+│       ├── 03-kubernetes-api-replica-resilience-improvement.md
+│       └── 04-two-replica-api-availability-test.md
 ├── k8s/
 │   ├── namespace.yaml
 │   ├── api-deployment.yaml
@@ -899,6 +942,7 @@ chaos-engineering-sandbox/
 | Kubernetes | Kind, kubectl, Namespace, Deployment, Service |
 | Reliability | Liveness probes, readiness probes, replicas |
 | Failure Testing | Redis failure, API pod deletion |
+| Availability Testing | 60-request live test during pod failure |
 | Recovery Analysis | Kubernetes desired state and pod recreation |
 | Resilience Improvement | API scaled from 1 replica to 2 replicas |
 | Incident Documentation | Failure reports, lessons learned, improvements |
@@ -911,8 +955,8 @@ chaos-engineering-sandbox/
 
 Planned next steps:
 
-- Repeat pod failure test with two API replicas while continuously sending requests.
-- Add a simple request loop script to observe availability during failure.
+- Add a reusable request loop script under `scripts/`.
+- Repeat the availability test against `/ready`.
 - Add Kubernetes Redis failure test.
 - Add Kubernetes PostgreSQL failure test.
 - Add Prometheus for metrics collection.
@@ -1016,6 +1060,16 @@ kubectl delete pod <API_POD_NAME> -n chaos-sandbox
 kubectl get pods -n chaos-sandbox -w
 ```
 
+### Run 60-request availability test
+
+```bash
+for i in {1..60}; do
+  echo -n "Request $i: "
+  curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/health
+  sleep 1
+done
+```
+
 ---
 
 ## 🧠 Key Learning Summary
@@ -1049,6 +1103,10 @@ Observe Kubernetes recovery
  ↓
 Scale API from 1 replica to 2 replicas
  ↓
+Send live requests during pod failure
+ ↓
+Confirm 60/60 successful responses
+ ↓
 Document resilience improvement
 ```
 
@@ -1063,6 +1121,7 @@ Deploy
 Break
 Recover
 Improve
+Validate
 Document
 ```
 
