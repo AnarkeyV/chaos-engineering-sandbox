@@ -5,12 +5,12 @@
 [![Kubernetes](https://img.shields.io/badge/kubernetes-kind%20local%20cluster-326CE5.svg)](https://kubernetes.io/)
 [![PostgreSQL](https://img.shields.io/badge/postgresql-dependency%20check-336791.svg)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/redis-cache%20failure%20test-DC382D.svg)](https://redis.io/)
-[![Availability Test](https://img.shields.io/badge/availability%20test-60%2F60%20HTTP%20200-success.svg)](#two-replica-availability-test)
+[![Availability Test](https://img.shields.io/badge/availability%20test-100%25%20success-success.svg)](#reusable-availability-test-script)
 [![Status](https://img.shields.io/badge/project-kubernetes%20resilience%20validated-success.svg)](#current-project-status)
 
 # ⚡ Chaos Engineering Sandbox — DevOps & Cloud Resilience Project
 
-A hands-on DevOps, Cloud Support, and Site Reliability Engineering portfolio project focused on **building, monitoring, breaking, recovering, and improving** a cloud-native system.
+A hands-on DevOps, Cloud Support, and Site Reliability Engineering portfolio project focused on **building, monitoring, breaking, recovering, validating, and improving** a cloud-native system.
 
 This project demonstrates how a small microservices-style application can be containerised with Docker, tested through GitHub Actions, deployed locally with Kubernetes using Kind, connected to PostgreSQL and Redis, and validated through controlled failure testing.
 
@@ -33,6 +33,7 @@ This project demonstrates how a small microservices-style application can be con
 - [Kubernetes Local Deployment](#kubernetes-local-deployment)
 - [Kubernetes Resilience Tests](#kubernetes-resilience-tests)
 - [Two-Replica Availability Test](#two-replica-availability-test)
+- [Reusable Availability Test Script](#reusable-availability-test-script)
 - [Incident Reports](#incident-reports)
 - [GitHub Actions CI](#github-actions-ci)
 - [Project Structure](#project-structure)
@@ -45,7 +46,7 @@ This project demonstrates how a small microservices-style application can be con
 
 ## ✅ Current Project Status
 
-The project has completed the local Docker, Docker Compose, CI, Kubernetes deployment, and early resilience testing milestones.
+The project has completed the local Docker, Docker Compose, CI, Kubernetes deployment, resilience testing, and reusable availability test script milestones.
 
 | Area | Status |
 |---|---|
@@ -74,6 +75,9 @@ The project has completed the local Docker, Docker Compose, CI, Kubernetes deplo
 | API pod failure test | Completed |
 | API replica improvement from 1 to 2 replicas | Completed |
 | Two-replica live availability test | Passed — 60/60 HTTP 200 responses |
+| Reusable availability test script | Completed |
+| `/health` script validation | Passed — 60/60 successful requests |
+| `/ready` script validation | Passed — 30/30 successful requests |
 | Incident-style resilience reports | 4 reports completed |
 | Current API image version | `chaos-api:0.2.0` |
 | Current API replicas in Kubernetes | `2` |
@@ -92,6 +96,7 @@ Can the system recover?
 Can we observe what happened?
 Can we improve the design after testing?
 Can users still reach the service while recovery happens?
+Can we repeat the test using a reusable script?
 Can we document the results clearly?
 ```
 
@@ -108,6 +113,7 @@ The project begins with a small FastAPI service, then gradually evolves into a m
 - Manual failure tests
 - Incident-style documentation
 - Availability validation during pod failure
+- Reusable availability testing script
 
 ---
 
@@ -155,6 +161,7 @@ The goal is to build a portfolio project that demonstrates practical skills rele
 | **API Pod Failure Test** | Demonstrates Kubernetes pod recovery |
 | **Replica Improvement** | Scales API from 1 replica to 2 replicas for better resilience |
 | **Live Availability Test** | Sends 60 requests while deleting one API pod |
+| **Reusable Test Script** | Automates request checks and prints success/failure summary |
 | **Incident Reports** | Documents failure tests, results, lessons learned, and improvements |
 
 ---
@@ -213,28 +220,6 @@ Kind Local Kubernetes Cluster
         └── ClusterIP service on port 6379
 ```
 
-### Kubernetes Traffic Flow
-
-```text
-User / Browser / curl loop
- ↓
-kubectl port-forward
- ↓
-chaos-api-service
- ↓
-available chaos-api pod
- ↓
-PostgreSQL service
- ↓
-PostgreSQL pod
-
-chaos-api pod
- ↓
-Redis service
- ↓
-Redis pod
-```
-
 ### Resilience Testing Flow
 
 ```text
@@ -251,6 +236,8 @@ Confirm recovery
 Document evidence
  ↓
 Improve system design
+ ↓
+Automate repeatable validation
 ```
 
 ---
@@ -271,6 +258,7 @@ Improve system design
 | Kubernetes CLI | kubectl |
 | Database | PostgreSQL |
 | Cache | Redis |
+| Scripting | Bash, curl, awk |
 | Documentation | Markdown |
 | Future Observability | Prometheus, Grafana |
 | Future Chaos Tooling | LitmusChaos or Chaos Mesh |
@@ -287,35 +275,6 @@ Improve system design
 | `/status` | `GET` | Shows API version, environment, features, and dependencies |
 | `/simulate-work` | `GET` | Simulates a small amount of processing work |
 | `/docs` | `GET` | FastAPI interactive documentation |
-
-### Example `/health` response
-
-```json
-{
-  "status": "healthy",
-  "service": "chaos-api",
-  "timestamp": "2026-06-05T09:00:00+00:00"
-}
-```
-
-### Example `/ready` response when dependencies are reachable
-
-```json
-{
-  "status": "ready",
-  "service": "chaos-api",
-  "dependencies": {
-    "database": {
-      "status": "reachable",
-      "message": "PostgreSQL connection successful"
-    },
-    "cache": {
-      "status": "reachable",
-      "message": "Redis connection successful"
-    }
-  }
-}
-```
 
 ---
 
@@ -361,12 +320,6 @@ pip install -r app/api/requirements.txt
 uvicorn app.api.main:app --reload --port 8000
 ```
 
-Open:
-
-```text
-http://127.0.0.1:8000
-```
-
 Useful local URLs:
 
 ```text
@@ -377,18 +330,9 @@ http://127.0.0.1:8000/simulate-work
 http://127.0.0.1:8000/docs
 ```
 
-> Note: When running the API directly with Python, PostgreSQL and Redis may not be available unless they are also running locally. In that case, `/ready` may return `not_ready`. This is expected.
-
 ---
 
 ## ✅ Automated Testing
-
-Tests are located in:
-
-```text
-tests/
-└── test_api.py
-```
 
 Run tests locally:
 
@@ -415,12 +359,6 @@ The tests validate:
 ---
 
 ## 🐳 Docker Build and Local Test
-
-The API Dockerfile is located at:
-
-```text
-app/api/Dockerfile
-```
 
 Build the Docker image:
 
@@ -456,24 +394,10 @@ docker rm chaos-api-container
 
 ## 🧱 Docker Compose Multi-Service Setup
 
-The Docker Compose file runs:
-
-```text
-chaos-api
-chaos-postgres
-chaos-redis
-```
-
 Start the full local system:
 
 ```bash
 docker compose up --build
-```
-
-Check running containers:
-
-```bash
-docker compose ps
 ```
 
 Expected services:
@@ -484,7 +408,7 @@ chaos-postgres
 chaos-redis
 ```
 
-Open:
+Check readiness:
 
 ```text
 http://127.0.0.1:8000/ready
@@ -512,15 +436,11 @@ docker compose down
 
 ### Docker Compose Health Checks
 
-The Compose setup includes health checks for:
-
 | Service | Health Check |
 |---|---|
 | API | Calls `/health` |
 | PostgreSQL | Runs `pg_isready` |
 | Redis | Runs `redis-cli ping` |
-
-This helps confirm that services are not only running, but also healthy.
 
 ---
 
@@ -528,41 +448,23 @@ This helps confirm that services are not only running, but also healthy.
 
 The API includes real dependency checks for PostgreSQL and Redis.
 
-### PostgreSQL check
-
-The API attempts to connect to PostgreSQL and run:
-
-```sql
-SELECT 1;
-```
-
-If successful, the database status becomes:
-
-```text
-reachable
-```
-
-### Redis check
-
-The API attempts to connect to Redis and run:
-
-```text
-PING
-```
-
-If successful, the cache status becomes:
-
-```text
-reachable
-```
-
-This distinction is important:
-
 | Endpoint | Meaning |
 |---|---|
 | `/health` | The API process is alive |
 | `/ready` | The API and its dependencies are ready |
 | `/status` | The API reports its environment, features, and dependency state |
+
+PostgreSQL check:
+
+```sql
+SELECT 1;
+```
+
+Redis check:
+
+```text
+PING
+```
 
 ---
 
@@ -570,38 +472,25 @@ This distinction is important:
 
 This project uses **Kind** to run a local Kubernetes cluster.
 
-### 1. Create a Kind cluster
+Create a Kind cluster:
 
 ```bash
 kind create cluster --name chaos-sandbox
 ```
 
-Check the node:
-
-```bash
-kubectl get nodes
-```
-
-Expected result:
-
-```text
-STATUS
-Ready
-```
-
-### 2. Build the API image
+Build the API image:
 
 ```bash
 docker build -t chaos-api:0.2.0 -f app/api/Dockerfile .
 ```
 
-### 3. Load the image into Kind
+Load the image into Kind:
 
 ```bash
 kind load docker-image chaos-api:0.2.0 --name chaos-sandbox
 ```
 
-### 4. Apply Kubernetes manifests
+Apply Kubernetes manifests:
 
 ```bash
 kubectl apply -f k8s/namespace.yaml
@@ -613,22 +502,13 @@ kubectl apply -f k8s/api-deployment.yaml
 kubectl apply -f k8s/api-service.yaml
 ```
 
-### 5. Check pods
+Check pods:
 
 ```bash
 kubectl get pods -n chaos-sandbox
 ```
 
-Expected result:
-
-```text
-chaos-api-xxxxx        1/1 Running
-chaos-api-yyyyy        1/1 Running
-chaos-postgres-xxxxx   1/1 Running
-chaos-redis-xxxxx      1/1 Running
-```
-
-### 6. Check Deployment
+Check Deployment:
 
 ```bash
 kubectl get deployment chaos-api -n chaos-sandbox
@@ -641,16 +521,10 @@ NAME        READY   UP-TO-DATE   AVAILABLE
 chaos-api   2/2     2            2
 ```
 
-### 7. Access the API using port-forwarding
+Access the API using port-forwarding:
 
 ```bash
 kubectl port-forward -n chaos-sandbox service/chaos-api-service 8000:8000
-```
-
-Open:
-
-```text
-http://127.0.0.1:8000/ready
 ```
 
 More details are documented in:
@@ -660,8 +534,6 @@ More details are documented in:
 ---
 
 ## 🧪 Kubernetes Resilience Tests
-
-The project now includes early manual resilience tests.
 
 ### Test 1: Redis Manual Failure Test
 
@@ -704,12 +576,6 @@ Result:
 | PostgreSQL remained running | Yes |
 | Redis remained running | Yes |
 
-Key evidence:
-
-```text
-Replicas: 1 desired | 1 updated | 1 total | 1 available | 0 unavailable
-```
-
 Report:
 
 [docs/incident-reports/02-kubernetes-api-pod-failure-test.md](docs/incident-reports/02-kubernetes-api-pod-failure-test.md)
@@ -738,15 +604,6 @@ Current evidence:
 Replicas: 2 desired | 2 updated | 2 total | 2 available | 0 unavailable
 ```
 
-Result:
-
-| Check | Result |
-|---|---|
-| API replica count increased | Yes |
-| Two API pods running | Yes |
-| Deployment returned `2/2` ready | Yes |
-| Resilience improved | Yes |
-
 Report:
 
 [docs/incident-reports/03-kubernetes-api-replica-resilience-improvement.md](docs/incident-reports/03-kubernetes-api-replica-resilience-improvement.md)
@@ -755,7 +612,7 @@ Report:
 
 ## 🟢 Two-Replica Availability Test
 
-The latest resilience test continuously sent requests to the API while one API pod was deleted.
+The availability test continuously sent requests to the API while one API pod was deleted.
 
 Command used:
 
@@ -765,12 +622,6 @@ for i in {1..60}; do
   curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/health
   sleep 1
 done
-```
-
-While the loop was running, one API pod was deleted:
-
-```bash
-kubectl delete pod <ONE_API_POD_NAME> -n chaos-sandbox
 ```
 
 Result:
@@ -785,25 +636,79 @@ Result:
 | HTTP success code | `200` |
 | API replicas | `2` |
 
-Key result:
-
-```text
-Request 1: 200
-...
-Request 60: 200
-```
-
-Deployment evidence after recovery:
-
-```text
-Replicas: 2 desired | 2 updated | 2 total | 2 available | 0 unavailable
-```
-
-This proves that the API remained reachable from the test client while Kubernetes replaced the deleted pod.
-
 Report:
 
 [docs/incident-reports/04-two-replica-api-availability-test.md](docs/incident-reports/04-two-replica-api-availability-test.md)
+
+---
+
+## 🧰 Reusable Availability Test Script
+
+A reusable script was added so the availability test can be repeated easily.
+
+Script location:
+
+```text
+scripts/check_api_availability.sh
+```
+
+Make the script executable:
+
+```bash
+chmod +x scripts/check_api_availability.sh
+```
+
+Run the default test:
+
+```bash
+./scripts/check_api_availability.sh
+```
+
+Default behavior:
+
+| Setting | Default |
+|---|---|
+| URL | `http://127.0.0.1:8000/health` |
+| Total requests | `60` |
+| Delay | `1` second |
+
+Custom usage:
+
+```bash
+./scripts/check_api_availability.sh http://127.0.0.1:8000/ready 30 1
+```
+
+This means:
+
+```text
+Check /ready
+Send 30 requests
+Wait 1 second between each request
+```
+
+### Script Validation Results
+
+The script was tested against both `/health` and `/ready`.
+
+| Endpoint | Requests | Successful | Failed | Success Rate | Result |
+|---|---:|---:|---:|---:|---|
+| `/health` | 60 | 60 | 0 | 100.00% | PASS |
+| `/ready` | 30 | 30 | 0 | 100.00% | PASS |
+
+Example summary output:
+
+```text
+Availability Test Summary
+----------------------------------------------
+Target URL         : http://127.0.0.1:8000/health
+Total requests     : 60
+Successful requests: 60
+Failed requests    : 0
+Success rate       : 100.00%
+Final result       : PASS
+```
+
+This makes the availability test repeatable and easier to demonstrate.
 
 ---
 
@@ -824,20 +729,6 @@ Current reports:
 | [03 Kubernetes API Replica Resilience Improvement](docs/incident-reports/03-kubernetes-api-replica-resilience-improvement.md) | Documents scaling API replicas from 1 to 2 |
 | [04 Two-Replica API Availability Test](docs/incident-reports/04-two-replica-api-availability-test.md) | Documents 60/60 successful requests during pod failure |
 
-These reports follow an incident-style format:
-
-```text
-Experiment name
-Purpose
-Hypothesis
-Failure injected
-Expected result
-Actual result
-Recovery evidence
-Lessons learned
-Future improvement
-```
-
 ---
 
 ## 🔄 GitHub Actions CI
@@ -848,34 +739,13 @@ The workflow file is located at:
 .github/workflows/ci.yml
 ```
 
-The CI workflow runs on:
-
-```text
-push to main
-pull request to main
-```
-
-The workflow performs:
+The CI workflow performs:
 
 1. Checkout repository
 2. Set up Python
 3. Install dependencies
 4. Run pytest
 5. Build Docker image
-
-Current workflow logic:
-
-```text
-Code pushed to GitHub
- ↓
-Run API tests
- ↓
-Build Docker image
- ↓
-Pass or fail workflow
-```
-
-This validates that the API still works and the Docker image can be built successfully.
 
 ---
 
@@ -915,9 +785,10 @@ chaos-engineering-sandbox/
 │   ├── postgres-service.yaml
 │   ├── redis-deployment.yaml
 │   └── redis-service.yaml
+├── scripts/
+│   └── check_api_availability.sh
 ├── observability/
 ├── chaos/
-├── scripts/
 └── .github/
     └── workflows/
         └── ci.yml
@@ -943,6 +814,7 @@ chaos-engineering-sandbox/
 | Reliability | Liveness probes, readiness probes, replicas |
 | Failure Testing | Redis failure, API pod deletion |
 | Availability Testing | 60-request live test during pod failure |
+| Scripting | Bash availability test script |
 | Recovery Analysis | Kubernetes desired state and pod recreation |
 | Resilience Improvement | API scaled from 1 replica to 2 replicas |
 | Incident Documentation | Failure reports, lessons learned, improvements |
@@ -955,8 +827,6 @@ chaos-engineering-sandbox/
 
 Planned next steps:
 
-- Add a reusable request loop script under `scripts/`.
-- Repeat the availability test against `/ready`.
 - Add Kubernetes Redis failure test.
 - Add Kubernetes PostgreSQL failure test.
 - Add Prometheus for metrics collection.
@@ -966,7 +836,6 @@ Planned next steps:
 - Add LitmusChaos or Chaos Mesh for automated chaos experiments.
 - Add Helm charts.
 - Add Azure AKS deployment.
-- Add Google Kubernetes Engine or Cloud Run optional deployment.
 - Add alerting rules for failure detection.
 - Add MTTR measurement.
 - Add service-level indicators such as availability and latency.
@@ -1060,14 +929,16 @@ kubectl delete pod <API_POD_NAME> -n chaos-sandbox
 kubectl get pods -n chaos-sandbox -w
 ```
 
-### Run 60-request availability test
+### Run reusable availability test
 
 ```bash
-for i in {1..60}; do
-  echo -n "Request $i: "
-  curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/health
-  sleep 1
-done
+./scripts/check_api_availability.sh
+```
+
+### Run custom availability test
+
+```bash
+./scripts/check_api_availability.sh http://127.0.0.1:8000/ready 30 1
 ```
 
 ---
@@ -1107,6 +978,10 @@ Send live requests during pod failure
  ↓
 Confirm 60/60 successful responses
  ↓
+Create reusable availability test script
+ ↓
+Validate /health and /ready with 100% success
+ ↓
 Document resilience improvement
 ```
 
@@ -1122,6 +997,7 @@ Break
 Recover
 Improve
 Validate
+Automate
 Document
 ```
 
