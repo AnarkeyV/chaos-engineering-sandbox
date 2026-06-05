@@ -1,0 +1,11 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: app/api/Dockerfile
+    container_name: chaos-api
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=local
+    restart: unless-stopped
