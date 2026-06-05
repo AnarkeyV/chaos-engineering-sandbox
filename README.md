@@ -3,16 +3,18 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-health%20api-009688.svg)](https://fastapi.tiangolo.com/)
 [![Docker](https://img.shields.io/badge/docker-compose%20%7C%20image%20build-blue.svg)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/kubernetes-kind%20local%20cluster-326CE5.svg)](https://kubernetes.io/)
+[![Prometheus](https://img.shields.io/badge/prometheus-metrics%20scraping-E6522C.svg)](https://prometheus.io/)
+[![Grafana](https://img.shields.io/badge/grafana-observability%20dashboard-F46800.svg)](https://grafana.com/)
 [![PostgreSQL](https://img.shields.io/badge/postgresql-dependency%20check-336791.svg)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/redis-cache%20failure%20test-DC382D.svg)](https://redis.io/)
 [![Availability Test](https://img.shields.io/badge/availability%20test-100%25%20success-success.svg)](#reusable-availability-test-script)
-[![Status](https://img.shields.io/badge/project-kubernetes%20resilience%20validated-success.svg)](#current-project-status)
+[![Status](https://img.shields.io/badge/project-observability%20milestone%20complete-success.svg)](#current-project-status)
 
-# ⚡ Chaos Engineering Sandbox — DevOps & Cloud Resilience Project
+# ⚡ Chaos Engineering Sandbox — DevOps, Kubernetes & Observability Project
 
 A hands-on DevOps, Cloud Support, and Site Reliability Engineering portfolio project focused on **building, monitoring, breaking, recovering, validating, and improving** a cloud-native system.
 
-This project demonstrates how a small microservices-style application can be containerised with Docker, tested through GitHub Actions, deployed locally with Kubernetes using Kind, connected to PostgreSQL and Redis, and validated through controlled failure testing.
+This project demonstrates how a small microservices-style application can be containerised with Docker, tested through GitHub Actions, deployed locally with Kubernetes using Kind, connected to PostgreSQL and Redis, monitored with Prometheus and Grafana, and validated through controlled failure testing.
 
 ---
 
@@ -27,13 +29,12 @@ This project demonstrates how a small microservices-style application can be con
 - [Application Endpoints](#application-endpoints)
 - [Local Development](#local-development)
 - [Automated Testing](#automated-testing)
-- [Docker Build and Local Test](#docker-build-and-local-test)
 - [Docker Compose Multi-Service Setup](#docker-compose-multi-service-setup)
-- [Dependency Readiness Checks](#dependency-readiness-checks)
 - [Kubernetes Local Deployment](#kubernetes-local-deployment)
 - [Kubernetes Resilience Tests](#kubernetes-resilience-tests)
-- [Two-Replica Availability Test](#two-replica-availability-test)
 - [Reusable Availability Test Script](#reusable-availability-test-script)
+- [Observability with Prometheus and Grafana](#observability-with-prometheus-and-grafana)
+- [Grafana Dashboard](#grafana-dashboard)
 - [Incident Reports](#incident-reports)
 - [GitHub Actions CI](#github-actions-ci)
 - [Project Structure](#project-structure)
@@ -46,40 +47,36 @@ This project demonstrates how a small microservices-style application can be con
 
 ## ✅ Current Project Status
 
-The project has completed the local Docker, Docker Compose, CI, Kubernetes deployment, resilience testing, and reusable availability test script milestones.
+The project has completed local Docker, Docker Compose, CI, Kubernetes deployment, resilience testing, reusable availability testing, and observability milestones.
 
 | Area | Status |
 |---|---|
 | Public GitHub repository | Completed |
-| Portfolio-style README | Updated |
-| Project roadmap documentation | Completed |
-| Architecture notes | Completed |
 | FastAPI backend service | Completed |
 | API health/status/readiness endpoints | Completed |
+| API `/metrics` endpoint | Completed |
 | pytest automated tests | Completed |
 | GitHub Actions CI | Passing |
 | Dockerfile | Completed |
-| Docker image build check in CI | Completed |
 | Docker Compose local setup | Completed |
 | PostgreSQL service | Added |
 | Redis service | Added |
-| Docker Compose health checks | Added |
 | API dependency checks for PostgreSQL and Redis | Completed |
-| Manual Redis failure test | Completed |
 | Local Kind Kubernetes cluster | Completed |
-| Kubernetes namespace | Completed |
-| Kubernetes API Deployment and Service | Completed |
-| Kubernetes PostgreSQL Deployment and Service | Completed |
-| Kubernetes Redis Deployment and Service | Completed |
+| Kubernetes API, PostgreSQL, and Redis manifests | Completed |
 | Kubernetes liveness and readiness probes | Completed |
 | API pod failure test | Completed |
 | API replica improvement from 1 to 2 replicas | Completed |
 | Two-replica live availability test | Passed — 60/60 HTTP 200 responses |
 | Reusable availability test script | Completed |
-| `/health` script validation | Passed — 60/60 successful requests |
-| `/ready` script validation | Passed — 30/30 successful requests |
+| Prometheus service | Completed |
+| Prometheus API metrics scraping | Completed |
+| Grafana service | Completed |
+| Grafana Prometheus datasource | Completed |
+| Grafana observability dashboard | Completed |
+| Dashboard JSON export | Completed |
 | Incident-style resilience reports | 4 reports completed |
-| Current API image version | `chaos-api:0.2.0` |
+| Current API image version | `chaos-api:0.3.0` |
 | Current API replicas in Kubernetes | `2` |
 
 ---
@@ -97,23 +94,11 @@ Can we observe what happened?
 Can we improve the design after testing?
 Can users still reach the service while recovery happens?
 Can we repeat the test using a reusable script?
+Can we visualise system behaviour using monitoring tools?
 Can we document the results clearly?
 ```
 
-The project begins with a small FastAPI service, then gradually evolves into a multi-service system with:
-
-- API service
-- PostgreSQL database dependency
-- Redis cache dependency
-- Docker containerisation
-- Docker Compose local orchestration
-- GitHub Actions CI
-- Kubernetes local deployment using Kind
-- Readiness and liveness probes
-- Manual failure tests
-- Incident-style documentation
-- Availability validation during pod failure
-- Reusable availability testing script
+The project begins with a small FastAPI service, then gradually evolves into a multi-service system with Docker Compose, Kubernetes, Prometheus, Grafana, and documented failure experiments.
 
 ---
 
@@ -121,19 +106,11 @@ The project begins with a small FastAPI service, then gradually evolves into a m
 
 I built this project to deepen my understanding of DevOps, Cloud Support, Kubernetes, observability, and reliability engineering.
 
-In real-world systems, failure is unavoidable.
-
-Applications can crash. Containers can stop. Databases can become unavailable. Cache services can fail. Network latency can increase. Deployments can go wrong.
+In real-world systems, failure is unavoidable. Applications can crash, containers can stop, databases can become unavailable, cache services can fail, latency can increase, and deployments can go wrong.
 
 This sandbox allows me to safely test failure scenarios, observe system behavior, improve the design, and document how the system recovers.
 
-The goal is to build a portfolio project that demonstrates practical skills relevant to:
-
-- DevOps Engineer roles
-- Cloud Support Engineer roles
-- Platform Engineering roles
-- Site Reliability Engineering roles
-- Infrastructure and Operations roles
+The goal is to build a portfolio project that demonstrates practical skills relevant to DevOps, Cloud Support, Platform Engineering, Site Reliability Engineering, and Infrastructure Operations roles.
 
 ---
 
@@ -141,27 +118,27 @@ The goal is to build a portfolio project that demonstrates practical skills rele
 
 | Feature | Description |
 |---|---|
-| **FastAPI Backend** | Simple API service used for health, readiness, and failure testing |
+| **FastAPI Backend** | Simple API service used for health, readiness, metrics, and failure testing |
 | **Health Endpoint** | `/health` confirms that the API process is alive |
 | **Readiness Endpoint** | `/ready` checks whether PostgreSQL and Redis are reachable |
 | **Status Endpoint** | `/status` shows service version, environment, features, and dependencies |
+| **Metrics Endpoint** | `/metrics` exposes Prometheus-compatible metrics |
 | **Work Simulation Endpoint** | `/simulate-work` creates artificial processing delay |
 | **Automated Tests** | pytest validates API endpoints |
 | **GitHub Actions CI** | Runs tests and Docker image build checks on push |
-| **Dockerfile** | Packages the API as a container image |
-| **Docker Compose** | Runs API, PostgreSQL, and Redis together locally |
-| **Docker Compose Health Checks** | Tracks service health for API, PostgreSQL, and Redis |
+| **Docker Compose** | Runs API, PostgreSQL, Redis, Prometheus, and Grafana locally |
 | **PostgreSQL Dependency** | Simulates a persistent database dependency |
 | **Redis Dependency** | Simulates a cache dependency |
-| **Manual Redis Failure Test** | Validates that the API detects Redis failure |
 | **Kind Kubernetes Cluster** | Runs Kubernetes locally using Docker |
 | **Kubernetes Manifests** | Deploys API, PostgreSQL, and Redis to Kubernetes |
 | **Liveness Probe** | Helps Kubernetes know whether the API is alive |
 | **Readiness Probe** | Helps Kubernetes know whether the API is ready for traffic |
 | **API Pod Failure Test** | Demonstrates Kubernetes pod recovery |
 | **Replica Improvement** | Scales API from 1 replica to 2 replicas for better resilience |
-| **Live Availability Test** | Sends 60 requests while deleting one API pod |
+| **Live Availability Test** | Sends requests while deleting one API pod |
 | **Reusable Test Script** | Automates request checks and prints success/failure summary |
+| **Prometheus Monitoring** | Scrapes and stores API metrics |
+| **Grafana Dashboard** | Visualises request count, request rate, latency, and active requests |
 | **Incident Reports** | Documents failure tests, results, lessons learned, and improvements |
 
 ---
@@ -179,19 +156,28 @@ Local Machine
 │   │   ├── /health
 │   │   ├── /ready
 │   │   ├── /status
+│   │   ├── /metrics
 │   │   └── /simulate-work
 │   │
 │   ├── chaos-postgres
 │   │   └── PostgreSQL database dependency
 │   │
-│   └── chaos-redis
-│       └── Redis cache dependency
+│   ├── chaos-redis
+│   │   └── Redis cache dependency
+│   │
+│   ├── chaos-prometheus
+│   │   └── Scrapes chaos-api:/metrics
+│   │
+│   └── chaos-grafana
+│       └── Visualises Prometheus metrics
 │
 └── Browser / curl
-    └── http://127.0.0.1:8000
+    ├── API:        http://127.0.0.1:8000
+    ├── Prometheus: http://127.0.0.1:9090
+    └── Grafana:    http://127.0.0.1:3000
 ```
 
-### Current Kubernetes Architecture
+### Kubernetes Architecture
 
 ```text
 Kind Local Kubernetes Cluster
@@ -208,16 +194,25 @@ Kind Local Kubernetes Cluster
     │   └── ClusterIP service on port 8000
     │
     ├── Deployment: chaos-postgres
-    │   └── PostgreSQL pod
-    │
     ├── Service: postgres
-    │   └── ClusterIP service on port 5432
-    │
     ├── Deployment: chaos-redis
-    │   └── Redis pod
-    │
     └── Service: redis
-        └── ClusterIP service on port 6379
+```
+
+### Observability Flow
+
+```text
+User / curl / availability script
+ ↓
+chaos-api
+ ↓
+/metrics endpoint
+ ↓
+Prometheus scrapes metrics
+ ↓
+Grafana queries Prometheus
+ ↓
+Dashboard visualises API behaviour
 ```
 
 ### Resilience Testing Flow
@@ -232,6 +227,8 @@ Inject controlled failure
 Send or observe requests during failure
  ↓
 Confirm recovery
+ ↓
+Observe metrics
  ↓
 Document evidence
  ↓
@@ -251,6 +248,7 @@ Automate repeatable validation
 | Testing | pytest, FastAPI TestClient, httpx |
 | PostgreSQL Driver | Psycopg 3 |
 | Cache Client | redis-py |
+| Metrics Client | prometheus-client |
 | Containers | Docker |
 | Local Multi-Service Runtime | Docker Compose |
 | CI | GitHub Actions |
@@ -258,9 +256,10 @@ Automate repeatable validation
 | Kubernetes CLI | kubectl |
 | Database | PostgreSQL |
 | Cache | Redis |
+| Monitoring | Prometheus |
+| Dashboarding | Grafana |
 | Scripting | Bash, curl, awk |
 | Documentation | Markdown |
-| Future Observability | Prometheus, Grafana |
 | Future Chaos Tooling | LitmusChaos or Chaos Mesh |
 
 ---
@@ -273,8 +272,17 @@ Automate repeatable validation
 | `/health` | `GET` | Confirms the API process is alive |
 | `/ready` | `GET` | Confirms API dependency readiness |
 | `/status` | `GET` | Shows API version, environment, features, and dependencies |
+| `/metrics` | `GET` | Exposes Prometheus-compatible metrics |
 | `/simulate-work` | `GET` | Simulates a small amount of processing work |
 | `/docs` | `GET` | FastAPI interactive documentation |
+
+### Key custom metrics
+
+| Metric | Purpose |
+|---|---|
+| `chaos_api_http_requests_total` | Counts API requests by method, endpoint, and status code |
+| `chaos_api_http_request_duration_seconds` | Tracks request latency |
+| `chaos_api_http_requests_in_progress` | Shows current in-progress API requests |
 
 ---
 
@@ -282,41 +290,16 @@ Automate repeatable validation
 
 ### Prerequisites
 
-Install the following:
+Install Git, Python 3.12 or later, Docker Desktop, and VS Code or another code editor.
 
-- Git
-- Python 3.12 or later
-- Docker Desktop
-- VS Code or another code editor
-
-### 1. Clone the repository
+### Clone and run locally
 
 ```bash
 git clone https://github.com/AnarkeyV/chaos-engineering-sandbox.git
 cd chaos-engineering-sandbox
-```
-
-### 2. Create a virtual environment
-
-```bash
 python3 -m venv .venv
-```
-
-### 3. Activate the virtual environment
-
-```bash
 source .venv/bin/activate
-```
-
-### 4. Install dependencies
-
-```bash
 pip install -r app/api/requirements.txt
-```
-
-### 5. Run the API locally
-
-```bash
 uvicorn app.api.main:app --reload --port 8000
 ```
 
@@ -326,6 +309,7 @@ Useful local URLs:
 http://127.0.0.1:8000/health
 http://127.0.0.1:8000/ready
 http://127.0.0.1:8000/status
+http://127.0.0.1:8000/metrics
 http://127.0.0.1:8000/simulate-work
 http://127.0.0.1:8000/docs
 ```
@@ -343,52 +327,10 @@ pytest
 Expected result:
 
 ```text
-5 passed
+6 passed
 ```
 
-The tests validate:
-
-| Test | Purpose |
-|---|---|
-| Root endpoint | Confirms `/` returns the correct API message |
-| Health endpoint | Confirms `/health` returns healthy status |
-| Ready endpoint | Confirms `/ready` returns dependency information |
-| Status endpoint | Confirms `/status` returns service and feature information |
-| Simulate work endpoint | Confirms `/simulate-work` returns a successful response |
-
----
-
-## 🐳 Docker Build and Local Test
-
-Build the Docker image:
-
-```bash
-docker build -t chaos-api:0.2.0 -f app/api/Dockerfile .
-```
-
-Run the container:
-
-```bash
-docker run --name chaos-api-container -p 8000:8000 chaos-api:0.2.0
-```
-
-Open:
-
-```text
-http://127.0.0.1:8000/health
-```
-
-Stop the container:
-
-```text
-Control + C
-```
-
-Remove the container:
-
-```bash
-docker rm chaos-api-container
-```
+The tests validate the root, health, readiness, status, simulate-work, and metrics endpoints.
 
 ---
 
@@ -406,115 +348,41 @@ Expected services:
 chaos-api
 chaos-postgres
 chaos-redis
+chaos-prometheus
+chaos-grafana
 ```
 
-Check readiness:
+Useful local URLs:
 
-```text
-http://127.0.0.1:8000/ready
-```
-
-Expected result:
-
-```text
-status: ready
-database: reachable
-cache: reachable
-```
+| Service | URL |
+|---|---|
+| API | `http://127.0.0.1:8000` |
+| API metrics | `http://127.0.0.1:8000/metrics` |
+| Prometheus | `http://127.0.0.1:9090` |
+| Grafana | `http://127.0.0.1:3000` |
 
 Stop the system:
 
-```text
-Control + C
-```
-
-Clean up:
-
 ```bash
 docker compose down
-```
-
-### Docker Compose Health Checks
-
-| Service | Health Check |
-|---|---|
-| API | Calls `/health` |
-| PostgreSQL | Runs `pg_isready` |
-| Redis | Runs `redis-cli ping` |
-
----
-
-## 🔍 Dependency Readiness Checks
-
-The API includes real dependency checks for PostgreSQL and Redis.
-
-| Endpoint | Meaning |
-|---|---|
-| `/health` | The API process is alive |
-| `/ready` | The API and its dependencies are ready |
-| `/status` | The API reports its environment, features, and dependency state |
-
-PostgreSQL check:
-
-```sql
-SELECT 1;
-```
-
-Redis check:
-
-```text
-PING
 ```
 
 ---
 
 ## ☸️ Kubernetes Local Deployment
 
-This project uses **Kind** to run a local Kubernetes cluster.
-
-Create a Kind cluster:
+This project uses Kind to run a local Kubernetes cluster.
 
 ```bash
 kind create cluster --name chaos-sandbox
-```
-
-Build the API image:
-
-```bash
 docker build -t chaos-api:0.2.0 -f app/api/Dockerfile .
-```
-
-Load the image into Kind:
-
-```bash
 kind load docker-image chaos-api:0.2.0 --name chaos-sandbox
-```
-
-Apply Kubernetes manifests:
-
-```bash
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/postgres-deployment.yaml
-kubectl apply -f k8s/postgres-service.yaml
-kubectl apply -f k8s/redis-deployment.yaml
-kubectl apply -f k8s/redis-service.yaml
-kubectl apply -f k8s/api-deployment.yaml
-kubectl apply -f k8s/api-service.yaml
-```
-
-Check pods:
-
-```bash
+kubectl apply -f k8s/
 kubectl get pods -n chaos-sandbox
-```
-
-Check Deployment:
-
-```bash
 kubectl get deployment chaos-api -n chaos-sandbox
 ```
 
-Expected current result:
+Expected current API Deployment result:
 
 ```text
 NAME        READY   UP-TO-DATE   AVAILABLE
@@ -537,71 +405,26 @@ More details are documented in:
 
 ### Test 1: Redis Manual Failure Test
 
-Redis was stopped manually using Docker:
-
-```bash
-docker stop chaos-redis
-```
-
-Result:
-
-| Check | Result |
-|---|---|
-| API stayed alive | Yes |
-| Redis failure detected | Yes |
-| `/ready` changed to `not_ready` | Yes |
-| Redis recovery detected | Yes |
+Redis was stopped manually using Docker. The API stayed alive and `/ready` correctly changed to `not_ready` while Redis was unavailable.
 
 Report:
 
 [docs/incident-reports/01-redis-manual-failure-test.md](docs/incident-reports/01-redis-manual-failure-test.md)
 
----
-
 ### Test 2: Kubernetes API Pod Failure Test
 
-The API pod was manually deleted:
-
-```bash
-kubectl delete pod <API_POD_NAME> -n chaos-sandbox
-```
-
-Result:
-
-| Check | Result |
-|---|---|
-| API pod deleted | Yes |
-| Kubernetes created a replacement pod | Yes |
-| Deployment returned to available state | Yes |
-| PostgreSQL remained running | Yes |
-| Redis remained running | Yes |
+One API pod was manually deleted. Kubernetes created a replacement pod and restored the Deployment.
 
 Report:
 
 [docs/incident-reports/02-kubernetes-api-pod-failure-test.md](docs/incident-reports/02-kubernetes-api-pod-failure-test.md)
 
----
-
 ### Test 3: API Replica Resilience Improvement
 
 The API Deployment was improved from one replica to two replicas.
 
-Before:
-
-```yaml
-replicas: 1
-```
-
-After:
-
 ```yaml
 replicas: 2
-```
-
-Current evidence:
-
-```text
-Replicas: 2 desired | 2 updated | 2 total | 2 available | 0 unavailable
 ```
 
 Report:
@@ -614,16 +437,6 @@ Report:
 
 The availability test continuously sent requests to the API while one API pod was deleted.
 
-Command used:
-
-```bash
-for i in {1..60}; do
-  echo -n "Request $i: "
-  curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/health
-  sleep 1
-done
-```
-
 Result:
 
 | Metric | Result |
@@ -633,7 +446,6 @@ Result:
 | Failed responses | `0` |
 | Success rate | `100%` |
 | Endpoint tested | `/health` |
-| HTTP success code | `200` |
 | API replicas | `2` |
 
 Report:
@@ -643,8 +455,6 @@ Report:
 ---
 
 ## 🧰 Reusable Availability Test Script
-
-A reusable script was added so the availability test can be repeated easily.
 
 Script location:
 
@@ -664,51 +474,114 @@ Run the default test:
 ./scripts/check_api_availability.sh
 ```
 
-Default behavior:
-
-| Setting | Default |
-|---|---|
-| URL | `http://127.0.0.1:8000/health` |
-| Total requests | `60` |
-| Delay | `1` second |
-
 Custom usage:
 
 ```bash
 ./scripts/check_api_availability.sh http://127.0.0.1:8000/ready 30 1
 ```
 
-This means:
-
-```text
-Check /ready
-Send 30 requests
-Wait 1 second between each request
-```
-
-### Script Validation Results
-
-The script was tested against both `/health` and `/ready`.
+Script validation results:
 
 | Endpoint | Requests | Successful | Failed | Success Rate | Result |
 |---|---:|---:|---:|---:|---|
 | `/health` | 60 | 60 | 0 | 100.00% | PASS |
 | `/ready` | 30 | 30 | 0 | 100.00% | PASS |
 
-Example summary output:
+---
+
+## 📊 Observability with Prometheus and Grafana
+
+Observability was added to monitor how the API behaves during normal use and failure testing.
+
+### Prometheus
+
+Prometheus scrapes the API metrics endpoint:
 
 ```text
-Availability Test Summary
-----------------------------------------------
-Target URL         : http://127.0.0.1:8000/health
-Total requests     : 60
-Successful requests: 60
-Failed requests    : 0
-Success rate       : 100.00%
-Final result       : PASS
+http://api:8000/metrics
 ```
 
-This makes the availability test repeatable and easier to demonstrate.
+Configuration file:
+
+```text
+observability/prometheus/prometheus.yml
+```
+
+Key Prometheus queries:
+
+```promql
+chaos_api_http_requests_total
+sum(chaos_api_http_requests_total)
+rate(chaos_api_http_requests_total[1m])
+chaos_api_http_requests_in_progress
+```
+
+### Grafana
+
+Grafana is configured with Prometheus as its default datasource.
+
+Datasource file:
+
+```text
+observability/grafana/provisioning/datasources/prometheus.yml
+```
+
+Local Grafana URL:
+
+```text
+http://127.0.0.1:3000
+```
+
+Default local login:
+
+```text
+Username: admin
+Password: admin
+```
+
+---
+
+## 📈 Grafana Dashboard
+
+Dashboard name:
+
+```text
+Chaos API Observability Dashboard
+```
+
+Dashboard export:
+
+```text
+observability/grafana/dashboards/chaos-api-observability-dashboard.json
+```
+
+Dashboard panels:
+
+| Panel | Purpose |
+|---|---|
+| Total API Requests | Shows total API request count |
+| API Request Rate | Shows requests per second |
+| Requests by Endpoint | Shows total requests grouped by endpoint |
+| Request Rate by Endpoint | Shows request rate grouped by endpoint |
+| 95th Percentile Request Latency | Shows high-percentile API latency |
+| In-Progress Requests | Shows active requests currently being processed |
+
+Example dashboard validation traffic:
+
+```bash
+./scripts/check_api_availability.sh http://127.0.0.1:8000/health 20 1
+./scripts/check_api_availability.sh http://127.0.0.1:8000/ready 20 1
+for i in {1..5}; do curl http://127.0.0.1:8000/simulate-work; echo; done
+```
+
+Observed validation:
+
+| Endpoint / Action | Result |
+|---|---|
+| `/health` | 20/20 successful requests |
+| `/ready` | 20/20 successful requests |
+| `/simulate-work` | 5 successful responses |
+| Dashboard | Metrics updated successfully |
 
 ---
 
@@ -719,8 +592,6 @@ Incident reports are stored in:
 ```text
 docs/incident-reports/
 ```
-
-Current reports:
 
 | Report | Description |
 |---|---|
@@ -788,7 +659,14 @@ chaos-engineering-sandbox/
 ├── scripts/
 │   └── check_api_availability.sh
 ├── observability/
-├── chaos/
+│   ├── prometheus/
+│   │   └── prometheus.yml
+│   └── grafana/
+│       ├── dashboards/
+│       │   └── chaos-api-observability-dashboard.json
+│       └── provisioning/
+│           └── datasources/
+│               └── prometheus.yml
 └── .github/
     └── workflows/
         └── ci.yml
@@ -803,7 +681,7 @@ chaos-engineering-sandbox/
 | Version Control | Git, GitHub, commits, public repository |
 | Documentation | README, architecture notes, roadmap, incident reports |
 | Backend Development | Python, FastAPI |
-| API Health Design | `/health`, `/ready`, `/status` |
+| API Health Design | `/health`, `/ready`, `/status`, `/metrics` |
 | Automated Testing | pytest |
 | CI | GitHub Actions |
 | Containerisation | Docker, Dockerfile |
@@ -815,11 +693,13 @@ chaos-engineering-sandbox/
 | Failure Testing | Redis failure, API pod deletion |
 | Availability Testing | 60-request live test during pod failure |
 | Scripting | Bash availability test script |
+| Monitoring | Prometheus metrics scraping |
+| Dashboarding | Grafana dashboard panels |
 | Recovery Analysis | Kubernetes desired state and pod recreation |
 | Resilience Improvement | API scaled from 1 replica to 2 replicas |
 | Incident Documentation | Failure reports, lessons learned, improvements |
 | Cloud Support Thinking | Diagnosis, dependency checks, recovery evidence |
-| SRE Thinking | Availability, readiness, resilience, MTTR preparation |
+| SRE Thinking | Availability, readiness, latency, resilience, observability |
 
 ---
 
@@ -829,17 +709,15 @@ Planned next steps:
 
 - Add Kubernetes Redis failure test.
 - Add Kubernetes PostgreSQL failure test.
-- Add Prometheus for metrics collection.
-- Add Grafana dashboards.
-- Add application metrics endpoint.
-- Add visual screenshots to documentation.
+- Add dashboard screenshots to documentation.
+- Add Prometheus alerting rules.
+- Add Grafana alerting.
+- Add MTTR measurement.
+- Add service-level indicators such as availability and latency.
 - Add LitmusChaos or Chaos Mesh for automated chaos experiments.
 - Add Helm charts.
 - Add Azure AKS deployment.
-- Add alerting rules for failure detection.
-- Add MTTR measurement.
-- Add service-level indicators such as availability and latency.
-- Add a final case study report.
+- Add final case study report.
 
 ---
 
@@ -863,22 +741,16 @@ docker compose up --build
 docker compose down
 ```
 
-### Create Kind cluster
+### Open Prometheus
 
-```bash
-kind create cluster --name chaos-sandbox
+```text
+http://127.0.0.1:9090
 ```
 
-### Build API image
+### Open Grafana
 
-```bash
-docker build -t chaos-api:0.2.0 -f app/api/Dockerfile .
-```
-
-### Load image into Kind
-
-```bash
-kind load docker-image chaos-api:0.2.0 --name chaos-sandbox
+```text
+http://127.0.0.1:3000
 ```
 
 ### Apply Kubernetes manifests
@@ -893,52 +765,18 @@ kubectl apply -f k8s/
 kubectl get pods -n chaos-sandbox
 ```
 
-### Check Kubernetes services
-
-```bash
-kubectl get svc -n chaos-sandbox
-```
-
-### Check API Deployment
-
-```bash
-kubectl get deployment chaos-api -n chaos-sandbox
-```
-
-### Describe API Deployment
-
-```bash
-kubectl describe deployment chaos-api -n chaos-sandbox
-```
-
-### Port-forward API service
-
-```bash
-kubectl port-forward -n chaos-sandbox service/chaos-api-service 8000:8000
-```
-
-### Delete one API pod for testing
-
-```bash
-kubectl delete pod <API_POD_NAME> -n chaos-sandbox
-```
-
-### Watch pods recover
-
-```bash
-kubectl get pods -n chaos-sandbox -w
-```
-
 ### Run reusable availability test
 
 ```bash
 ./scripts/check_api_availability.sh
 ```
 
-### Run custom availability test
+### Generate dashboard traffic
 
 ```bash
-./scripts/check_api_availability.sh http://127.0.0.1:8000/ready 30 1
+./scripts/check_api_availability.sh http://127.0.0.1:8000/health 20 1
+./scripts/check_api_availability.sh http://127.0.0.1:8000/ready 20 1
+for i in {1..5}; do curl http://127.0.0.1:8000/simulate-work; echo; done
 ```
 
 ---
@@ -980,9 +818,17 @@ Confirm 60/60 successful responses
  ↓
 Create reusable availability test script
  ↓
-Validate /health and /ready with 100% success
+Add Prometheus metrics endpoint
  ↓
-Document resilience improvement
+Scrape metrics with Prometheus
+ ↓
+Visualise metrics with Grafana
+ ↓
+Create observability dashboard
+ ↓
+Export dashboard as JSON
+ ↓
+Document resilience and observability improvements
 ```
 
 This makes the project more than a basic deployment exercise.
@@ -997,6 +843,7 @@ Break
 Recover
 Improve
 Validate
+Observe
 Automate
 Document
 ```
