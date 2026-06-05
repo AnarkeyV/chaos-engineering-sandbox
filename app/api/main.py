@@ -5,18 +5,73 @@ import time
 
 import psycopg
 import redis
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import Response
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    Counter,
+    Gauge,
+    Histogram,
+    generate_latest,
+)
 
 
 app = FastAPI(
     title="Chaos Engineering Sandbox API",
     description="A simple API used to test health checks, readiness, observability, and chaos engineering experiments.",
-    version="0.2.0",
+    version="0.3.0",
+)
+
+
+REQUEST_COUNT = Counter(
+    "chaos_api_http_requests_total",
+    "Total number of HTTP requests received by the Chaos API",
+    ["method", "endpoint", "http_status"],
+)
+
+REQUEST_LATENCY = Histogram(
+    "chaos_api_http_request_duration_seconds",
+    "HTTP request latency in seconds for the Chaos API",
+    ["method", "endpoint"],
+)
+
+IN_PROGRESS_REQUESTS = Gauge(
+    "chaos_api_http_requests_in_progress",
+    "Number of HTTP requests currently being processed by the Chaos API",
 )
 
 
 def utc_timestamp():
     return datetime.now(timezone.utc).isoformat()
+
+
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    endpoint = request.url.path
+    method = request.method
+
+    if endpoint == "/metrics":
+        return await call_next(request)
+
+    IN_PROGRESS_REQUESTS.inc()
+    start_time = time.time()
+
+    try:
+        response = await call_next(request)
+        status_code = str(response.status_code)
+        return response
+    except Exception:
+        status_code = "500"
+        raise
+    finally:
+        duration = time.time() - start_time
+        REQUEST_LATENCY.labels(method=method, endpoint=endpoint).observe(duration)
+        REQUEST_COUNT.labels(
+            method=method,
+            endpoint=endpoint,
+            http_status=status_code,
+        ).inc()
+        IN_PROGRESS_REQUESTS.dec()
 
 
 def check_postgres():
@@ -29,23 +84,14 @@ def check_postgres():
             password=os.getenv("POSTGRES_PASSWORD", "chaospassword"),
             connect_timeout=2,
         )
-
         cursor = connection.cursor()
         cursor.execute("SELECT 1;")
         cursor.fetchone()
         cursor.close()
         connection.close()
-
-        return {
-            "status": "reachable",
-            "message": "PostgreSQL connection successful",
-        }
-
+        return {"status": "reachable", "message": "PostgreSQL connection successful"}
     except Exception as error:
-        return {
-            "status": "unreachable",
-            "message": str(error),
-        }
+        return {"status": "unreachable", "message": str(error)}
 
 
 def check_redis():
@@ -56,19 +102,10 @@ def check_redis():
             socket_connect_timeout=2,
             socket_timeout=2,
         )
-
         client.ping()
-
-        return {
-            "status": "reachable",
-            "message": "Redis connection successful",
-        }
-
+        return {"status": "reachable", "message": "Redis connection successful"}
     except Exception as error:
-        return {
-            "status": "unreachable",
-            "message": str(error),
-        }
+        return {"status": "unreachable", "message": str(error)}
 
 
 @app.get("/")
@@ -77,6 +114,7 @@ def root():
         "message": "Chaos Engineering Sandbox API",
         "status": "running",
         "docs": "/docs",
+        "metrics": "/metrics",
     }
 
 
@@ -117,14 +155,14 @@ def service_status():
 
     return {
         "service": "chaos-api",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "environment": os.getenv("APP_ENV", "local"),
         "status": "running",
         "features": {
             "database": postgres_status["status"] == "reachable",
             "cache": redis_status["status"] == "reachable",
-            "observability": False,
-            "chaos_experiments": False,
+            "observability": True,
+            "chaos_experiments": True,
         },
         "dependencies": {
             "database": postgres_status,
@@ -145,3 +183,11 @@ def simulate_work():
         "status": "success",
         "timestamp": utc_timestamp(),
     }
+
+
+@app.get("/metrics")
+def metrics():
+    return Response(
+        content=generate_latest(),
+        media_type=CONTENT_TYPE_LATEST,
+    )
