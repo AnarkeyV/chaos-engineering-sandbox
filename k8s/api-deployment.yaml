@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chaos-api
+  namespace: chaos-sandbox
+  labels:
+    app: chaos-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chaos-api
+  template:
+    metadata:
+      labels:
+        app: chaos-api
+    spec:
+      containers:
+        - name: chaos-api
+          image: chaos-api:0.2.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: APP_ENV
+              value: kubernetes-local
+            - name: POSTGRES_HOST
+              value: postgres
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: chaosdb
+            - name: POSTGRES_USER
+              value: chaosuser
+            - name: POSTGRES_PASSWORD
+              value: chaospassword
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3

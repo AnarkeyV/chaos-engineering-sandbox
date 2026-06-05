@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chaos-sandbox
+  labels:
+    name: chaos-sandbox
+    project: chaos-engineering-sandbox

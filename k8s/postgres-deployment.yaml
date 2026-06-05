@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chaos-postgres
+  namespace: chaos-sandbox
+  labels:
+    app: chaos-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chaos-postgres
+  template:
+    metadata:
+      labels:
+        app: chaos-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: chaosdb
+            - name: POSTGRES_USER
+              value: chaosuser
+            - name: POSTGRES_PASSWORD
+              value: chaospassword
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - chaosuser
+                - -d
+                - chaosdb
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - chaosuser
+                - -d
+                - chaosdb
+            initialDelaySeconds: 20
+            periodSeconds: 20
