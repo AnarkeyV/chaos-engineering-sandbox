@@ -8,4 +8,37 @@ services:
       - "8000:8000"
     environment:
       - APP_ENV=local
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=chaosdb
+      - POSTGRES_USER=chaosuser
+      - POSTGRES_PASSWORD=chaospassword
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
     restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: chaos-postgres
+    environment:
+      - POSTGRES_DB=chaosdb
+      - POSTGRES_USER=chaosuser
+      - POSTGRES_PASSWORD=chaospassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: chaos-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
