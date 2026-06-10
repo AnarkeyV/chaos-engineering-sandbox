@@ -5,10 +5,10 @@
 [![Kubernetes](https://img.shields.io/badge/kubernetes-kind%20local%20cluster-326CE5.svg)](https://kubernetes.io/)
 [![Prometheus](https://img.shields.io/badge/prometheus-metrics%20scraping-E6522C.svg)](https://prometheus.io/)
 [![Grafana](https://img.shields.io/badge/grafana-observability%20dashboard-F46800.svg)](https://grafana.com/)
-[![PostgreSQL](https://img.shields.io/badge/postgresql-dependency%20check-336791.svg)](https://www.postgresql.org/)
+[![PostgreSQL](https://img.shields.io/badge/postgresql-kubernetes%20failure%20test-336791.svg)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/redis-kubernetes%20failure%20test-DC382D.svg)](https://redis.io/)
 [![Availability Test](https://img.shields.io/badge/availability%20test-100%25%20success-success.svg)](#reusable-availability-test-script)
-[![Status](https://img.shields.io/badge/project-kubernetes%20dependency%20testing-success.svg)](#current-project-status)
+[![Status](https://img.shields.io/badge/project-dependency%20failure%20testing-success.svg)](#current-project-status)
 
 # ⚡ Chaos Engineering Sandbox — DevOps, Kubernetes & Observability Project
 
@@ -35,6 +35,8 @@ This project demonstrates how a small microservices-style application can be con
 - [Kubernetes Local Deployment](#kubernetes-local-deployment)
 - [Kubernetes Resilience Tests](#kubernetes-resilience-tests)
 - [Kubernetes Redis Failure Test](#kubernetes-redis-failure-test)
+- [Kubernetes PostgreSQL Failure Test](#kubernetes-postgresql-failure-test)
+- [Dependency Failure Comparison](#dependency-failure-comparison)
 - [Two-Replica Availability Test](#two-replica-availability-test)
 - [Reusable Availability Test Script](#reusable-availability-test-script)
 - [Observability with Prometheus and Grafana](#observability-with-prometheus-and-grafana)
@@ -83,6 +85,8 @@ The project has completed local Docker, Docker Compose, CI, Kubernetes deploymen
 | Two-replica live availability test | Passed — 60/60 HTTP 200 responses |
 | Kubernetes Redis failure test | Passed — Redis pod recreated successfully |
 | Redis readiness interruption observed | No visible interruption during 1-second polling |
+| Kubernetes PostgreSQL failure test | Passed — readiness degradation detected and recovered |
+| PostgreSQL failure window | Request 17–24 `not_ready`, request 25 recovered |
 | Reusable availability test script | Completed |
 | `/health` script validation | Passed — 60/60 successful requests |
 | `/ready` script validation | Passed — 30/30 successful requests |
@@ -92,7 +96,7 @@ The project has completed local Docker, Docker Compose, CI, Kubernetes deploymen
 | Grafana Prometheus datasource | Completed |
 | Grafana observability dashboard | Completed |
 | Dashboard JSON export | Completed |
-| Incident-style resilience reports | 5 reports completed |
+| Incident-style resilience reports | 6 reports completed |
 | Current API image version | `chaos-api:0.3.0` |
 | Current API replicas in Kubernetes | `2` |
 
@@ -111,7 +115,8 @@ Can we observe what happened?
 Can we improve the design after testing?
 Can users still reach the service while recovery happens?
 Can dependencies recover when they fail?
-Can we repeat the test using a reusable script?
+Can readiness checks identify which dependency is broken?
+Can we repeat tests using a reusable script?
 Can we visualise system behaviour using monitoring tools?
 Can we document the results clearly?
 ```
@@ -180,6 +185,7 @@ The goal is to build a portfolio project that demonstrates practical skills rele
 | **Readiness Probe** | Helps Kubernetes know whether containers are ready for traffic |
 | **API Pod Failure Test** | Demonstrates Kubernetes API pod recovery |
 | **Redis Pod Failure Test** | Demonstrates Kubernetes Redis pod recovery |
+| **PostgreSQL Pod Failure Test** | Demonstrates database failure detection and recovery |
 | **Replica Improvement** | Scales API from 1 replica to 2 replicas for better resilience |
 | **Live Availability Test** | Sends requests while deleting one API pod |
 | **Reusable Test Script** | Automates request checks and prints success/failure summary |
@@ -240,7 +246,9 @@ Kind Local Kubernetes Cluster
     │   └── ClusterIP service on port 8000
     │
     ├── Deployment: chaos-postgres
-    │   └── PostgreSQL pod
+    │   ├── PostgreSQL pod
+    │   ├── Liveness probe: pg_isready
+    │   └── Readiness probe: pg_isready
     │
     ├── Service: postgres
     │   └── ClusterIP service on port 5432
@@ -281,15 +289,15 @@ Inject controlled failure
  ↓
 Send or observe requests during failure
  ↓
-Confirm recovery
+Confirm dependency impact
+ ↓
+Confirm Kubernetes recovery
  ↓
 Observe metrics
  ↓
 Document evidence
  ↓
 Improve system design
- ↓
-Automate repeatable validation
 ```
 
 ---
@@ -535,6 +543,8 @@ Redis check:
 PING
 ```
 
+This is an important design choice because a service can be alive but still not ready to serve real traffic.
+
 ---
 
 ## ☸️ Kubernetes Local Deployment
@@ -681,7 +691,7 @@ Report:
 
 ## 🔴 Kubernetes Redis Failure Test
 
-Redis was also tested as a Kubernetes-managed dependency.
+Redis was tested as a Kubernetes-managed dependency.
 
 The Redis pod was manually deleted:
 
@@ -718,12 +728,6 @@ NAME          READY   UP-TO-DATE   AVAILABLE
 chaos-redis   1/1     1            1
 ```
 
-Deployment evidence:
-
-```text
-Replicas: 1 desired | 1 updated | 1 total | 1 available | 0 unavailable
-```
-
 Result summary:
 
 | Check | Result |
@@ -743,11 +747,144 @@ Important observation:
 No visible readiness interruption was captured during the 1-second polling loop.
 ```
 
-This means Redis recovered quickly enough that the API did not visibly enter a `not_ready` state during the observed test window.
-
 Report:
 
 [docs/incident-reports/05-kubernetes-redis-failure-test.md](docs/incident-reports/05-kubernetes-redis-failure-test.md)
+
+---
+
+## 🟠 Kubernetes PostgreSQL Failure Test
+
+PostgreSQL was tested as a Kubernetes-managed database dependency.
+
+Before failure, `/ready` returned:
+
+```text
+status: ready
+database: reachable
+cache: reachable
+```
+
+The PostgreSQL pod was manually deleted:
+
+```bash
+kubectl delete pod <POSTGRES_POD_NAME> -n chaos-sandbox
+```
+
+A readiness loop was used to observe API readiness:
+
+```bash
+for i in {1..90}; do
+  echo -n "Request $i: "
+  curl -s http://127.0.0.1:8000/ready | grep -o '"status":"[^"]*"'
+  sleep 1
+done
+```
+
+Observed readiness impact:
+
+```text
+Request 17: "status":"not_ready"
+"status":"unreachable"
+"status":"reachable"
+
+Request 18: "status":"not_ready"
+"status":"unreachable"
+"status":"reachable"
+
+Request 19: "status":"not_ready"
+"status":"unreachable"
+"status":"reachable"
+
+Request 20: "status":"not_ready"
+"status":"unreachable"
+"status":"reachable"
+
+Request 21: "status":"not_ready"
+"status":"unreachable"
+"status":"reachable"
+
+Request 22: "status":"not_ready"
+"status":"unreachable"
+"status":"reachable"
+
+Request 23: "status":"not_ready"
+"status":"unreachable"
+"status":"reachable"
+
+Request 24: "status":"not_ready"
+"status":"unreachable"
+"status":"reachable"
+
+Request 25: "status":"ready"
+```
+
+This showed:
+
+```text
+database: unreachable
+cache: reachable
+```
+
+Kubernetes recovery evidence:
+
+```text
+chaos-postgres-5d4778d86-mmfjl   0/1     Running   0   3s
+chaos-postgres-5d4778d86-mmfjl   1/1     Running   0   10s
+```
+
+Final PostgreSQL Deployment state:
+
+```text
+NAME             READY   UP-TO-DATE   AVAILABLE
+chaos-postgres   1/1     1            1
+```
+
+Result summary:
+
+| Check | Result |
+|---|---|
+| PostgreSQL pod deleted manually | Yes |
+| API stayed running | Yes |
+| Redis stayed running | Yes |
+| `/ready` detected PostgreSQL failure | Yes |
+| `/ready` changed to `not_ready` | Yes |
+| Database showed `unreachable` | Yes |
+| Cache stayed `reachable` | Yes |
+| Kubernetes recreated PostgreSQL pod | Yes |
+| PostgreSQL pod reached `1/1 Running` | Yes |
+| PostgreSQL Deployment returned to `1/1` available | Yes |
+| API `/ready` returned to `ready` | Yes |
+| Manual PostgreSQL redeployment required | No |
+
+Report:
+
+[docs/incident-reports/06-kubernetes-postgresql-failure-test.md](docs/incident-reports/06-kubernetes-postgresql-failure-test.md)
+
+---
+
+## 🔁 Dependency Failure Comparison
+
+The Redis and PostgreSQL failure tests produced different readiness behavior.
+
+| Dependency | Failure Result |
+|---|---|
+| Redis | No visible readiness interruption captured |
+| PostgreSQL | Clear `not_ready` state observed |
+| Redis recovery | Very fast during observed test |
+| PostgreSQL recovery | Visible readiness impact from request 17 to request 24 |
+| Redis status during PostgreSQL failure | Remained reachable |
+| Database status during PostgreSQL failure | Became unreachable |
+| API process | Stayed running in both tests |
+
+This comparison is useful because it shows that different dependencies can fail and recover differently.
+
+It also reinforces the difference between:
+
+```text
+/health = API process is alive
+/ready  = API and dependencies are ready
+```
 
 ---
 
@@ -943,6 +1080,7 @@ Current reports:
 | [03 Kubernetes API Replica Resilience Improvement](docs/incident-reports/03-kubernetes-api-replica-resilience-improvement.md) | Documents scaling API replicas from 1 to 2 |
 | [04 Two-Replica API Availability Test](docs/incident-reports/04-two-replica-api-availability-test.md) | Documents 60/60 successful requests during API pod failure |
 | [05 Kubernetes Redis Failure Test](docs/incident-reports/05-kubernetes-redis-failure-test.md) | Documents Redis pod deletion and Kubernetes recovery |
+| [06 Kubernetes PostgreSQL Failure Test](docs/incident-reports/06-kubernetes-postgresql-failure-test.md) | Documents database failure detection and Kubernetes recovery |
 
 ---
 
@@ -992,7 +1130,8 @@ chaos-engineering-sandbox/
 │       ├── 02-kubernetes-api-pod-failure-test.md
 │       ├── 03-kubernetes-api-replica-resilience-improvement.md
 │       ├── 04-two-replica-api-availability-test.md
-│       └── 05-kubernetes-redis-failure-test.md
+│       ├── 05-kubernetes-redis-failure-test.md
+│       └── 06-kubernetes-postgresql-failure-test.md
 ├── k8s/
 │   ├── namespace.yaml
 │   ├── api-deployment.yaml
@@ -1035,8 +1174,8 @@ chaos-engineering-sandbox/
 | Caching | Redis dependency check |
 | Kubernetes | Kind, kubectl, Namespace, Deployment, Service |
 | Reliability | Liveness probes, readiness probes, replicas |
-| Failure Testing | Redis failure, API pod deletion, Redis pod deletion |
-| Dependency Testing | Redis recovery inside Kubernetes |
+| Failure Testing | Redis failure, API pod deletion, Redis pod deletion, PostgreSQL pod deletion |
+| Dependency Testing | Redis and PostgreSQL recovery inside Kubernetes |
 | Availability Testing | 60-request live test during pod failure |
 | Scripting | Bash availability test script |
 | Monitoring | Prometheus metrics scraping |
@@ -1053,15 +1192,16 @@ chaos-engineering-sandbox/
 
 Planned next steps:
 
-- Add Kubernetes PostgreSQL failure test.
-- Add faster dependency polling for Redis failure experiments.
-- Add API-level metric for dependency status.
-- Add custom Redis connectivity metric.
+- Add faster dependency polling for failure experiments.
+- Add API-level metric for dependency readiness.
+- Add custom Redis and PostgreSQL connectivity metrics.
 - Add dashboard screenshots to documentation.
 - Add Prometheus alerting rules.
 - Add Grafana alerting.
 - Add MTTR measurement.
 - Add service-level indicators such as availability and latency.
+- Add persistent storage for PostgreSQL.
+- Add PostgreSQL StatefulSet version.
 - Add LitmusChaos or Chaos Mesh for automated chaos experiments.
 - Add Helm charts.
 - Add Azure AKS deployment.
@@ -1143,6 +1283,12 @@ kubectl get deployment chaos-api -n chaos-sandbox
 kubectl get deployment chaos-redis -n chaos-sandbox
 ```
 
+### Check PostgreSQL Deployment
+
+```bash
+kubectl get deployment chaos-postgres -n chaos-sandbox
+```
+
 ### Port-forward API service
 
 ```bash
@@ -1171,6 +1317,12 @@ kubectl delete pod <API_POD_NAME> -n chaos-sandbox
 
 ```bash
 kubectl delete pod <REDIS_POD_NAME> -n chaos-sandbox
+```
+
+### Delete PostgreSQL pod for dependency failure testing
+
+```bash
+kubectl delete pod <POSTGRES_POD_NAME> -n chaos-sandbox
 ```
 
 ### Watch pods recover
@@ -1240,6 +1392,12 @@ Delete Redis pod in Kubernetes
  ↓
 Observe Redis recovery and API readiness behaviour
  ↓
+Delete PostgreSQL pod in Kubernetes
+ ↓
+Observe database failure detection and readiness recovery
+ ↓
+Compare dependency failure behaviour
+ ↓
 Document resilience and dependency failure testing
 ```
 
@@ -1252,6 +1410,7 @@ Build
 Test
 Deploy
 Break
+Detect
 Recover
 Improve
 Validate
