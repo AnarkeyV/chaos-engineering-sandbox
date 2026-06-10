@@ -3,21 +3,22 @@
 ![Prometheus](https://img.shields.io/badge/prometheus-alerting%20rules-E6522C.svg)
 ![Status](https://img.shields.io/badge/status-validated-success.svg)
 ![Redis](https://img.shields.io/badge/RedisDown-alert%20validated-DC382D.svg)
-![PostgreSQL](https://img.shields.io/badge/PostgresDown-alert%20configured-336791.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgresDown-alert%20validated-336791.svg)
 
 ## Overview
 
 This document records the addition and validation of Prometheus alerting rules for the Chaos Engineering Sandbox API.
 
-The project already exposes application and dependency metrics through the FastAPI `/metrics` endpoint. This milestone adds alerting rules so Prometheus can detect unhealthy conditions automatically.
+The project exposes application and dependency metrics through the FastAPI `/metrics` endpoint. Prometheus alerting rules use those metrics to detect unhealthy conditions automatically.
 
-The first validated alert is:
+Validated dependency alerts:
 
 ```text
 RedisDown
+PostgresDown
 ```
 
-This alert fires when the Redis dependency health metric changes from `1` to `0`.
+These alerts fire when the related dependency health metric changes from `1` to `0`.
 
 ---
 
@@ -63,12 +64,12 @@ The alert rule folder is mounted into the Prometheus container through Docker Co
 
 ## Configured Alerts
 
-| Alert | Purpose | Severity |
-|---|---|---|
-| `RedisDown` | Fires when Redis dependency health is `0` | warning |
-| `PostgresDown` | Fires when PostgreSQL dependency health is `0` | critical |
-| `ApiHighLatency` | Fires when 95th percentile API latency is above 1 second | warning |
-| `ApiHighErrorRate` | Fires when API returns HTTP 5xx responses | critical |
+| Alert | Purpose | Severity | Validation Status |
+|---|---|---|---|
+| `RedisDown` | Fires when Redis dependency health is `0` | warning | Validated |
+| `PostgresDown` | Fires when PostgreSQL dependency health is `0` | critical | Validated |
+| `ApiHighLatency` | Fires when 95th percentile API latency is above 1 second | warning | Configured |
+| `ApiHighErrorRate` | Fires when API returns HTTP 5xx responses | critical | Configured |
 
 ---
 
@@ -250,8 +251,6 @@ Redis was stopped manually using Docker.
 docker stop chaos-redis
 ```
 
----
-
 ### 2. Refresh Dependency Metric
 
 The `/ready` endpoint was called to refresh dependency status.
@@ -278,8 +277,6 @@ Observed result:
 }
 ```
 
----
-
 ### 3. Confirm Metric Changed
 
 The dependency health metric was checked.
@@ -297,9 +294,7 @@ chaos_api_dependency_up{dependency="redis"} 0.0
 
 This confirmed that Redis was unhealthy while PostgreSQL remained healthy.
 
----
-
-### 4. Wait for Alert Duration
+### 4. Confirm Alert Fired
 
 The `RedisDown` alert has:
 
@@ -307,19 +302,13 @@ The `RedisDown` alert has:
 for: 15s
 ```
 
-Prometheus needed to observe the Redis dependency as down for at least 15 seconds before the alert fired.
+After Redis stayed unhealthy for at least 15 seconds, Prometheus showed the `RedisDown` alert firing.
 
----
-
-### 5. Confirm Alert Fired
-
-Prometheus alerts page was opened:
+Prometheus alerts page:
 
 ```text
 http://127.0.0.1:9090/alerts
 ```
-
-The `RedisDown` alert fired successfully.
 
 Screenshot evidence:
 
@@ -327,14 +316,106 @@ Screenshot evidence:
 docs/screenshots/prometheus-redisdown-alert.png
 ```
 
----
-
-## Redis Recovery Validation
+### 5. Redis Recovery Validation
 
 Redis was started again.
 
 ```bash
 docker start chaos-redis
+```
+
+The `/ready` endpoint was called again.
+
+```bash
+curl http://127.0.0.1:8000/ready
+```
+
+The dependency metric returned to healthy state.
+
+```text
+chaos_api_dependency_up{dependency="postgres"} 1.0
+chaos_api_dependency_up{dependency="redis"} 1.0
+```
+
+Prometheus alert state returned to:
+
+```text
+OK
+```
+
+---
+
+## PostgresDown Alert Validation
+
+### 1. Stop PostgreSQL
+
+PostgreSQL was stopped manually using Docker.
+
+```bash
+docker stop chaos-postgres
+```
+
+### 2. Refresh Dependency Metric
+
+The `/ready` endpoint was called to refresh dependency status.
+
+```bash
+curl http://127.0.0.1:8000/ready
+```
+
+Expected result:
+
+```text
+status: not_ready
+database: unreachable
+cache: reachable
+```
+
+### 3. Confirm Metric Changed
+
+The dependency health metric was checked.
+
+```bash
+curl http://127.0.0.1:8000/metrics | grep chaos_api_dependency_up
+```
+
+Expected result:
+
+```text
+chaos_api_dependency_up{dependency="postgres"} 0.0
+chaos_api_dependency_up{dependency="redis"} 1.0
+```
+
+This confirmed that PostgreSQL was unhealthy while Redis remained healthy.
+
+### 4. Confirm Alert Fired
+
+The `PostgresDown` alert has:
+
+```text
+for: 15s
+```
+
+After PostgreSQL stayed unhealthy for at least 15 seconds, Prometheus showed the `PostgresDown` alert firing.
+
+Prometheus alerts page:
+
+```text
+http://127.0.0.1:9090/alerts
+```
+
+Screenshot evidence:
+
+```text
+docs/screenshots/prometheus-postgresdown-alert.png
+```
+
+### 5. PostgreSQL Recovery Validation
+
+PostgreSQL was started again.
+
+```bash
+docker start chaos-postgres
 ```
 
 The `/ready` endpoint was called again.
@@ -371,39 +452,43 @@ OK
 | `PostgresDown` rule loaded | Passed |
 | `ApiHighLatency` rule loaded | Passed |
 | `ApiHighErrorRate` rule loaded | Passed |
-| Redis failure changed metric to `0` | Passed |
+| Redis failure changed Redis metric to `0` | Passed |
 | `RedisDown` alert fired after 15 seconds | Passed |
-| Redis recovery changed metric back to `1` | Passed |
+| Redis recovery changed Redis metric back to `1` | Passed |
 | `RedisDown` alert returned to OK | Passed |
+| PostgreSQL failure changed PostgreSQL metric to `0` | Passed |
+| `PostgresDown` alert fired after 15 seconds | Passed |
+| PostgreSQL recovery changed PostgreSQL metric back to `1` | Passed |
+| `PostgresDown` alert returned to OK | Passed |
 | GitHub Actions passed | Passed |
 
 ---
 
 ## What This Proves
 
-This milestone proves that the project can now detect and alert on dependency failure using Prometheus.
+This milestone proves that the project can detect and alert on dependency failure using Prometheus.
 
-The observability flow is now:
+The dependency alerting flow is now:
 
 ```text
-Redis fails
+Dependency fails
  ↓
-API /ready detects Redis unreachable
+API /ready detects dependency unreachable
  ↓
-chaos_api_dependency_up{dependency="redis"} changes to 0
+chaos_api_dependency_up changes from 1 to 0
  ↓
-Prometheus evaluates RedisDown rule
+Prometheus evaluates alert rule
  ↓
-RedisDown alert fires
+Alert fires after configured duration
  ↓
-Redis recovers
+Dependency recovers
  ↓
 Metric returns to 1
  ↓
 Alert returns to OK
 ```
 
-This is a major improvement over only checking the application manually.
+This has been validated for both Redis and PostgreSQL.
 
 ---
 
@@ -432,12 +517,11 @@ Limitations:
 
 - No Alertmanager integration yet.
 - No email, Slack, or webhook notifications yet.
-- `PostgresDown` is configured but not yet separately validated.
 - `ApiHighLatency` is configured but not yet separately validated.
 - `ApiHighErrorRate` is configured but not yet separately validated.
 - Alert screenshots are currently manual.
 
-These are acceptable for the current milestone because the main goal was to load rules and validate one real firing alert.
+These are acceptable for the current milestone because the main goal was to load rules and validate real firing alerts for dependency failure.
 
 ---
 
@@ -445,7 +529,8 @@ These are acceptable for the current milestone because the main goal was to load
 
 Recommended next improvements:
 
-- Validate `PostgresDown` alert.
+- Validate `ApiHighLatency` alert.
+- Validate `ApiHighErrorRate` alert.
 - Add Alertmanager.
 - Add notification routing.
 - Add email or webhook receiver.
@@ -460,13 +545,15 @@ Recommended next improvements:
 
 ## Final Result
 
-Prometheus alerting rules were successfully added and validated.
+Prometheus alerting rules were successfully added and dependency alerts were validated.
 
 ```text
 Final result: PASS
 Rules loaded: Yes
 RedisDown alert validated: Yes
+PostgresDown alert validated: Yes
 Redis recovery validated: Yes
-Alert returned to OK: Yes
+PostgreSQL recovery validated: Yes
+Alerts returned to OK: Yes
 GitHub Actions passed: Yes
 ```

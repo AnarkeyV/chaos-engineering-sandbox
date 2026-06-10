@@ -105,6 +105,7 @@ The project has completed local Docker, Docker Compose, CI, Kubernetes deploymen
 | Redis failure metric validation | Passed — Redis changed from `1.0` to `0.0` and recovered to `1.0` |
 | Prometheus alerting rules | Added and validated |
 | RedisDown alert validation | Passed — alert fired after Redis failure and returned to OK after recovery |
+| PostgresDown alert validation | Passed — alert fired after PostgreSQL failure and returned to OK after recovery |
 | Alert rules documentation | Added |
 | Incident-style resilience reports | 6 reports completed |
 | Current API image version | `chaos-api:0.3.0` |
@@ -1193,6 +1194,30 @@ Screenshot evidence:
 
 ![Prometheus RedisDown Alert](docs/screenshots/prometheus-redisdown-alert.png)
 
+PostgresDown validation flow:
+
+```text
+PostgreSQL stopped
+ ↓
+/ready returned not_ready
+ ↓
+chaos_api_dependency_up{dependency="postgres"} changed from 1.0 to 0.0
+ ↓
+Prometheus evaluated PostgresDown
+ ↓
+PostgresDown alert fired after 15 seconds
+ ↓
+PostgreSQL restarted
+ ↓
+Metric returned to 1.0
+ ↓
+Alert returned to OK
+```
+
+Screenshot evidence:
+
+![Prometheus PostgresDown Alert](docs/screenshots/prometheus-postgresdown-alert.png)
+
 Documentation:
 
 [docs/observability/prometheus-alerting-rules.md](docs/observability/prometheus-alerting-rules.md)
@@ -1212,6 +1237,7 @@ Visual evidence is included to show the application monitoring stack and failure
 | ![PostgreSQL Failure Readiness](docs/screenshots/postgresql-failure-readiness.png) | Terminal evidence showing `/ready` changing to `not_ready` during PostgreSQL failure and recovering to `ready` |
 | ![Dependency Health Panel](docs/screenshots/dependency-health-panel.png) | Grafana panel showing PostgreSQL and Redis dependency health using the `chaos_api_dependency_up` Prometheus metric |
 | ![Prometheus RedisDown Alert](docs/screenshots/prometheus-redisdown-alert.png) | Prometheus alert evidence showing the `RedisDown` alert firing after Redis became unreachable |
+| ![Prometheus PostgresDown Alert](docs/screenshots/prometheus-postgresdown-alert.png) | Prometheus alert evidence showing the `PostgresDown` alert firing after PostgreSQL became unreachable |
 
 These screenshots help make the project easier to review by showing the system behavior visually instead of only describing it in text.
 
@@ -1284,7 +1310,8 @@ chaos-engineering-sandbox/
 │   │   ├── grafana-dashboard.png
 │   │   ├── postgresql-failure-readiness.png
 │   │   ├── prometheus-query.png
-│   │   └── prometheus-redisdown-alert.png
+│   │   ├── prometheus-redisdown-alert.png
+│   │   └── prometheus-postgresdown-alert.png
 │   ├── observability/
 │   │   ├── dependency-health-metric.md
 │   │   └── prometheus-alerting-rules.md
@@ -1358,7 +1385,6 @@ chaos-engineering-sandbox/
 
 Planned next steps:
 
-- Validate `PostgresDown` alert.
 - Validate `ApiHighLatency` alert.
 - Validate `ApiHighErrorRate` alert.
 - Add Alertmanager integration.
@@ -1579,6 +1605,8 @@ Validate Redis failure metric change from 1 to 0 and back to 1
 Add Prometheus alert rules
  ↓
 Validate RedisDown alert firing and recovery
+ ↓
+Validate PostgresDown alert firing and recovery
 ```
 
 This makes the project more than a basic deployment exercise.
