@@ -41,6 +41,7 @@ This project demonstrates how a small microservices-style application can be con
 - [Reusable Availability Test Script](#reusable-availability-test-script)
 - [Observability with Prometheus and Grafana](#observability-with-prometheus-and-grafana)
 - [Grafana Dashboard](#grafana-dashboard)
+- [Screenshots / Evidence](#screenshots--evidence)
 - [Incident Reports](#incident-reports)
 - [GitHub Actions CI](#github-actions-ci)
 - [Project Structure](#project-structure)
@@ -96,6 +97,7 @@ The project has completed local Docker, Docker Compose, CI, Kubernetes deploymen
 | Grafana Prometheus datasource | Completed |
 | Grafana observability dashboard | Completed |
 | Dashboard JSON export | Completed |
+| Screenshot evidence | Added |
 | Incident-style resilience reports | 6 reports completed |
 | Current API image version | `chaos-api:0.3.0` |
 | Current API replicas in Kubernetes | `2` |
@@ -1063,6 +1065,20 @@ for i in {1..5}; do curl http://127.0.0.1:8000/simulate-work; echo; done
 
 ---
 
+## 🖼️ Screenshots / Evidence
+
+Visual evidence is included to show the application monitoring stack and failure testing results.
+
+| Screenshot | Description |
+|---|---|
+| ![Grafana Dashboard](docs/screenshots/grafana-dashboard.png) | Grafana dashboard showing API request count, request rate, endpoint traffic, latency, and in-progress requests |
+| ![Prometheus Query](docs/screenshots/prometheus-query.png) | Prometheus query showing API metrics scraped from the FastAPI `/metrics` endpoint |
+| ![PostgreSQL Failure Readiness](docs/screenshots/postgresql-failure-readiness.png) | Terminal evidence showing `/ready` changing to `not_ready` during PostgreSQL failure and recovering to `ready` |
+
+These screenshots help make the project easier to review by showing the system behavior visually instead of only describing it in text.
+
+---
+
 ## 📄 Incident Reports
 
 Incident reports are stored in:
@@ -1125,6 +1141,10 @@ chaos-engineering-sandbox/
 │   ├── architecture-notes.md
 │   ├── project-roadmap.md
 │   ├── kubernetes-local-deployment.md
+│   ├── screenshots/
+│   │   ├── grafana-dashboard.png
+│   │   ├── postgresql-failure-readiness.png
+│   │   └── prometheus-query.png
 │   └── incident-reports/
 │       ├── 01-redis-manual-failure-test.md
 │       ├── 02-kubernetes-api-pod-failure-test.md
@@ -1399,6 +1419,8 @@ Observe database failure detection and readiness recovery
 Compare dependency failure behaviour
  ↓
 Document resilience and dependency failure testing
+ ↓
+Add screenshot evidence for monitoring and failure results
 ```
 
 This makes the project more than a basic deployment exercise.
