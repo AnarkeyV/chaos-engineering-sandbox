@@ -8,7 +8,7 @@
 [![PostgreSQL](https://img.shields.io/badge/postgresql-kubernetes%20failure%20test-336791.svg)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/redis-kubernetes%20failure%20test-DC382D.svg)](https://redis.io/)
 [![Availability Test](https://img.shields.io/badge/availability%20test-100%25%20success-success.svg)](#reusable-availability-test-script)
-[![Status](https://img.shields.io/badge/project-prometheus%20alerting%20validated-success.svg)](#current-project-status)
+[![Status](https://img.shields.io/badge/project-alerting%20milestone%20complete-success.svg)](#current-project-status)
 
 # ⚡ Chaos Engineering Sandbox — DevOps, Kubernetes & Observability Project
 
@@ -106,6 +106,11 @@ The project has completed local Docker, Docker Compose, CI, Kubernetes deploymen
 | Prometheus alerting rules | Added and validated |
 | RedisDown alert validation | Passed — alert fired after Redis failure and returned to OK after recovery |
 | PostgresDown alert validation | Passed — alert fired after PostgreSQL failure and returned to OK after recovery |
+| ApiHighLatency alert validation | Passed — alert fired after slow `/simulate-work?delay=2` requests |
+| ApiHighErrorRate alert validation | Passed — alert fired after `/simulate-error` HTTP 500 responses |
+| `/simulate-work` delay support | Added |
+| `/simulate-error` endpoint | Added for controlled 500 error validation |
+| Alerting milestone | Completed |
 | Alert rules documentation | Added |
 | Incident-style resilience reports | 6 reports completed |
 | Current API image version | `chaos-api:0.3.0` |
@@ -181,7 +186,8 @@ The goal is to build a portfolio project that demonstrates practical skills rele
 | **Readiness Endpoint** | `/ready` checks whether PostgreSQL and Redis are reachable |
 | **Status Endpoint** | `/status` shows service version, environment, features, and dependencies |
 | **Metrics Endpoint** | `/metrics` exposes Prometheus-compatible metrics |
-| **Work Simulation Endpoint** | `/simulate-work` creates artificial processing delay |
+| **Work Simulation Endpoint** | `/simulate-work` creates artificial processing delay and supports delay testing |
+| **Controlled Error Endpoint** | `/simulate-error` intentionally returns HTTP 500 for alert validation |
 | **Automated Tests** | pytest validates API endpoints |
 | **GitHub Actions CI** | Runs tests and Docker image build checks on push |
 | **Dockerfile** | Packages the API as a container image |
@@ -349,7 +355,8 @@ Improve system design
 | `/ready` | `GET` | Confirms API dependency readiness |
 | `/status` | `GET` | Shows service version, environment, features, and dependencies |
 | `/metrics` | `GET` | Exposes Prometheus-compatible metrics |
-| `/simulate-work` | `GET` | Simulates a small amount of processing work |
+| `/simulate-work` | `GET` | Simulates processing work and supports delay testing with `?delay=` |
+| `/simulate-error` | `GET` | Intentionally returns HTTP 500 for alert validation |
 | `/docs` | `GET` | FastAPI interactive documentation |
 
 ### Key custom metrics
@@ -429,7 +436,7 @@ pytest
 Expected result:
 
 ```text
-6 passed
+7 passed
 ```
 
 The tests validate:
@@ -1149,39 +1156,31 @@ Alert rule file:
 observability/prometheus/rules/alerts.yml
 ```
 
-Prometheus config:
+Configured and validated alerts:
 
-```text
-observability/prometheus/prometheus.yml
-```
-
-Configured alerts:
-
-| Alert | Purpose | Severity |
-|---|---|---|
-| `RedisDown` | Fires when Redis dependency health is `0` | warning |
-| `PostgresDown` | Fires when PostgreSQL dependency health is `0` | critical |
-| `ApiHighLatency` | Fires when 95th percentile API latency is above 1 second | warning |
-| `ApiHighErrorRate` | Fires when API returns HTTP 5xx responses | critical |
+| Alert | Purpose | Severity | Status |
+|---|---|---|---|
+| `RedisDown` | Fires when Redis dependency health is `0` | warning | Validated |
+| `PostgresDown` | Fires when PostgreSQL dependency health is `0` | critical | Validated |
+| `ApiHighLatency` | Fires when 95th percentile API latency is above 1 second | warning | Validated |
+| `ApiHighErrorRate` | Fires when API returns HTTP 5xx responses | critical | Validated |
 
 The alerts use the existing API metrics, including:
 
 ```promql
 chaos_api_dependency_up
+chaos_api_http_request_duration_seconds_bucket
+chaos_api_http_requests_total
 ```
 
-RedisDown validation flow:
+### RedisDown validation
 
 ```text
 Redis stopped
  ↓
-/ready returned not_ready
- ↓
 chaos_api_dependency_up{dependency="redis"} changed from 1.0 to 0.0
  ↓
-Prometheus evaluated RedisDown
- ↓
-RedisDown alert fired after 15 seconds
+RedisDown alert fired
  ↓
 Redis restarted
  ↓
@@ -1190,22 +1189,18 @@ Metric returned to 1.0
 Alert returned to OK
 ```
 
-Screenshot evidence:
+Screenshot:
 
 ![Prometheus RedisDown Alert](docs/screenshots/prometheus-redisdown-alert.png)
 
-PostgresDown validation flow:
+### PostgresDown validation
 
 ```text
 PostgreSQL stopped
  ↓
-/ready returned not_ready
- ↓
 chaos_api_dependency_up{dependency="postgres"} changed from 1.0 to 0.0
  ↓
-Prometheus evaluated PostgresDown
- ↓
-PostgresDown alert fired after 15 seconds
+PostgresDown alert fired
  ↓
 PostgreSQL restarted
  ↓
@@ -1214,15 +1209,47 @@ Metric returned to 1.0
 Alert returned to OK
 ```
 
-Screenshot evidence:
+Screenshot:
 
 ![Prometheus PostgresDown Alert](docs/screenshots/prometheus-postgresdown-alert.png)
+
+### ApiHighLatency validation
+
+The `/simulate-work` endpoint was updated to support delay testing.
+
+Example:
+
+```bash
+curl "http://127.0.0.1:8000/simulate-work?delay=2"
+```
+
+Slow requests were generated until the `ApiHighLatency` alert fired.
+
+Screenshot:
+
+![Prometheus ApiHighLatency Alert](docs/screenshots/prometheus-apihighlatency-alert.png)
+
+### ApiHighErrorRate validation
+
+The `/simulate-error` endpoint was added to intentionally return HTTP 500 for alert validation.
+
+Example:
+
+```bash
+curl http://127.0.0.1:8000/simulate-error
+```
+
+HTTP 500 responses were generated until the `ApiHighErrorRate` alert fired.
+
+Screenshot:
+
+![Prometheus ApiHighErrorRate Alert](docs/screenshots/prometheus-apihigherrorrate-alert.png)
 
 Documentation:
 
 [docs/observability/prometheus-alerting-rules.md](docs/observability/prometheus-alerting-rules.md)
 
-This milestone shows that the project can now detect dependency failure automatically through Prometheus alert rules instead of relying only on manual checks.
+This milestone shows that the project can now detect dependency failure, high latency, and HTTP 5xx errors automatically through Prometheus alert rules.
 
 ---
 
@@ -1238,6 +1265,8 @@ Visual evidence is included to show the application monitoring stack and failure
 | ![Dependency Health Panel](docs/screenshots/dependency-health-panel.png) | Grafana panel showing PostgreSQL and Redis dependency health using the `chaos_api_dependency_up` Prometheus metric |
 | ![Prometheus RedisDown Alert](docs/screenshots/prometheus-redisdown-alert.png) | Prometheus alert evidence showing the `RedisDown` alert firing after Redis became unreachable |
 | ![Prometheus PostgresDown Alert](docs/screenshots/prometheus-postgresdown-alert.png) | Prometheus alert evidence showing the `PostgresDown` alert firing after PostgreSQL became unreachable |
+| ![Prometheus ApiHighErrorRate Alert](docs/screenshots/prometheus-apihigherrorrate-alert.png) | Prometheus alert evidence showing the `ApiHighErrorRate` alert firing after HTTP 500 responses |
+| ![Prometheus ApiHighLatency Alert](docs/screenshots/prometheus-apihighlatency-alert.png) | Prometheus alert evidence showing the `ApiHighLatency` alert firing after slow API responses |
 
 These screenshots help make the project easier to review by showing the system behavior visually instead of only describing it in text.
 
@@ -1310,6 +1339,8 @@ chaos-engineering-sandbox/
 │   │   ├── grafana-dashboard.png
 │   │   ├── postgresql-failure-readiness.png
 │   │   ├── prometheus-query.png
+│   │   ├── prometheus-apihigherrorrate-alert.png
+│   │   ├── prometheus-apihighlatency-alert.png
 │   │   ├── prometheus-redisdown-alert.png
 │   │   └── prometheus-postgresdown-alert.png
 │   ├── observability/
@@ -1371,7 +1402,7 @@ chaos-engineering-sandbox/
 | Availability Testing | 60-request live test during pod failure |
 | Scripting | Bash availability test script |
 | Monitoring | Prometheus metrics scraping |
-| Alerting | Prometheus rules for dependency failure, latency, and 5xx errors |
+| Alerting | Prometheus rules validated for dependency failure, high latency, and 5xx errors |
 | Dashboarding | Grafana dashboard panels |
 | Recovery Analysis | Kubernetes desired state and pod recreation |
 | Resilience Improvement | API scaled from 1 replica to 2 replicas |
@@ -1385,8 +1416,6 @@ chaos-engineering-sandbox/
 
 Planned next steps:
 
-- Validate `ApiHighLatency` alert.
-- Validate `ApiHighErrorRate` alert.
 - Add Alertmanager integration.
 
 - Add faster dependency polling for failure experiments.
@@ -1607,6 +1636,10 @@ Add Prometheus alert rules
 Validate RedisDown alert firing and recovery
  ↓
 Validate PostgresDown alert firing and recovery
+ ↓
+Validate ApiHighLatency alert firing
+ ↓
+Validate ApiHighErrorRate alert firing
 ```
 
 This makes the project more than a basic deployment exercise.
