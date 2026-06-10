@@ -187,14 +187,16 @@ def service_status():
 
 
 @app.get("/simulate-work")
-def simulate_work():
-    processing_time = round(random.uniform(0.1, 1.5), 2)
-    time.sleep(processing_time)
+def simulate_work(delay: float = 0.2):
+    safe_delay = min(max(delay, 0), 5)
+
+    time.sleep(safe_delay)
 
     return {
-        "message": "Work simulation completed",
-        "processing_time_seconds": processing_time,
         "status": "success",
+        "message": "Work simulation completed",
+        "processing_time_seconds": safe_delay,
+        "delay_seconds": safe_delay,
         "timestamp": utc_timestamp(),
     }
 
