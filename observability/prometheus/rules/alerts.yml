@@ -1,0 +1,44 @@
+groups:
+  - name: chaos-api-alerts
+    rules:
+      - alert: RedisDown
+        expr: chaos_api_dependency_up{dependency="redis"} == 0
+        for: 15s
+        labels:
+          severity: warning
+          service: chaos-api
+          dependency: redis
+        annotations:
+          summary: "Redis dependency is unreachable"
+          description: "The Chaos API cannot reach Redis. The redis dependency health metric is 0."
+
+      - alert: PostgresDown
+        expr: chaos_api_dependency_up{dependency="postgres"} == 0
+        for: 15s
+        labels:
+          severity: critical
+          service: chaos-api
+          dependency: postgres
+        annotations:
+          summary: "PostgreSQL dependency is unreachable"
+          description: "The Chaos API cannot reach PostgreSQL. The postgres dependency health metric is 0."
+
+      - alert: ApiHighLatency
+        expr: histogram_quantile(0.95, sum(rate(chaos_api_http_request_duration_seconds_bucket[1m])) by (le)) > 1
+        for: 30s
+        labels:
+          severity: warning
+          service: chaos-api
+        annotations:
+          summary: "API latency is high"
+          description: "The 95th percentile API latency is above 1 second."
+
+      - alert: ApiHighErrorRate
+        expr: sum(rate(chaos_api_http_requests_total{http_status=~"5.."}[1m])) > 0
+        for: 30s
+        labels:
+          severity: critical
+          service: chaos-api
+        annotations:
+          summary: "API 5xx errors detected"
+          description: "The Chaos API is returning HTTP 5xx responses."
