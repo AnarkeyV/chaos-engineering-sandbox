@@ -35,7 +35,7 @@ The goal is not only to prove that an application works, but to show how it beha
 | Milestone 5 — Observability with Prometheus and Grafana | Completed |
 | Milestone 6 — Dependency failure testing | Completed |
 | Milestone 7 — Screenshot evidence and README polish | Completed |
-| Milestone 8 — Dependency health metrics and alerting | In progress — Part 1 completed |
+| Milestone 8 — Dependency health metrics and alerting | In progress — Parts 1 and 2 completed |
 | Milestone 9 — Automated chaos experiments | Planned |
 | Milestone 10 — Cloud deployment extension | Planned |
 | Milestone 11 — Final case study report | Planned |
@@ -513,27 +513,76 @@ Redis is unreachable
 
 ---
 
-### Part 2 — Alerting Rules
+### Part 2 — Prometheus Alerting Rules
 
 #### Status
 
-Planned
+Completed
 
-#### Planned Work
+#### Completed Work
 
-- Add Prometheus alert rule for Redis dependency failure.
-- Add Prometheus alert rule for PostgreSQL dependency failure.
-- Add alert for API readiness failure.
-- Add alert for high request latency.
-- Add alert for failed HTTP requests.
-- Add Grafana alerting.
-- Add alert documentation.
-- Add screenshots of alert firing state.
-- Add alert recovery validation.
+- Created Prometheus alert rules folder.
+- Added `alerts.yml`.
+- Updated Prometheus configuration to load rule files.
+- Updated Docker Compose to mount alert rules into Prometheus.
+- Restarted Docker Compose stack.
+- Confirmed alert rules loaded in Prometheus.
+- Validated `RedisDown` alert by stopping Redis.
+- Confirmed Redis dependency metric changed from `1.0` to `0.0`.
+- Confirmed `RedisDown` fired after 15 seconds.
+- Restarted Redis.
+- Confirmed alert returned to OK after recovery.
+- Added screenshot evidence.
+- Added alerting documentation.
+- Confirmed GitHub Actions passed.
 
-#### Expected Outcome
+#### Configured Alerts
 
-The system should be able to show when a dependency is unhealthy and provide an alert signal that could notify an operator.
+| Alert | Purpose | Severity |
+|---|---|---|
+| `RedisDown` | Fires when Redis dependency health is `0` | warning |
+| `PostgresDown` | Fires when PostgreSQL dependency health is `0` | critical |
+| `ApiHighLatency` | Fires when 95th percentile API latency is above 1 second | warning |
+| `ApiHighErrorRate` | Fires when API returns HTTP 5xx responses | critical |
+
+#### Validated Alert
+
+```text
+RedisDown
+```
+
+Validation result:
+
+```text
+Redis stopped
+ ↓
+chaos_api_dependency_up{dependency="redis"} changed to 0.0
+ ↓
+RedisDown fired after 15 seconds
+ ↓
+Redis restarted
+ ↓
+chaos_api_dependency_up{dependency="redis"} returned to 1.0
+ ↓
+RedisDown returned to OK
+```
+
+#### Key Files
+
+```text
+observability/prometheus/prometheus.yml
+observability/prometheus/rules/alerts.yml
+docker-compose.yml
+docs/observability/prometheus-alerting-rules.md
+docs/screenshots/prometheus-redisdown-alert.png
+```
+
+#### Outcome
+
+Prometheus can now evaluate alert rules and detect dependency failure automatically.
+
+This moves the project from passive monitoring toward active alerting.
+
 
 ---
 
@@ -561,9 +610,9 @@ Planned
 
 ### Overall Milestone 8 Outcome So Far
 
-Milestone 8 Part 1 is complete.
+Milestone 8 Parts 1 and 2 are complete.
 
-The project now has dependency-specific health metrics and a Grafana Dependency Health panel.
+The project now has dependency-specific health metrics, a Grafana Dependency Health panel, and Prometheus alerting rules with RedisDown validation.
 
 
 ---
@@ -659,7 +708,8 @@ The project can be presented clearly in interviews, LinkedIn posts, portfolio we
 | Kubernetes | Kind, Deployments, Services, probes |
 | Reliability Testing | API pod failure, Redis failure, PostgreSQL failure |
 | Availability Testing | 60/60 successful request test |
-| Observability | Prometheus metrics, dependency health metric, and Grafana dashboard |
+| Observability | Prometheus metrics, dependency health metric, Grafana dashboard, and Prometheus alerting rules |
+| Alerting | Prometheus RedisDown alert validation |
 | Incident Documentation | Six incident reports |
 | Scripting | Reusable Bash availability test script |
 | Portfolio Communication | README, screenshots, roadmap, reports |
@@ -702,12 +752,12 @@ Updated README and roadmap documentation
 The recommended next step is:
 
 ```text
-Milestone 8 Part 2 — Prometheus Alerting Rules
+Milestone 8 Part 3 — Validate PostgresDown and Additional Alert Rules
 ```
 
 This would build naturally on the current observability work.
 
-The strongest next improvement would be to add Prometheus alerting rules for Redis and PostgreSQL dependency failures using the new `chaos_api_dependency_up` metric.
+The strongest next improvement would be to validate the remaining configured alerts: `PostgresDown`, `ApiHighLatency`, and `ApiHighErrorRate`.
 
 ---
 

@@ -8,7 +8,7 @@
 [![PostgreSQL](https://img.shields.io/badge/postgresql-kubernetes%20failure%20test-336791.svg)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/redis-kubernetes%20failure%20test-DC382D.svg)](https://redis.io/)
 [![Availability Test](https://img.shields.io/badge/availability%20test-100%25%20success-success.svg)](#reusable-availability-test-script)
-[![Status](https://img.shields.io/badge/project-observability%20metrics%20updated-success.svg)](#current-project-status)
+[![Status](https://img.shields.io/badge/project-prometheus%20alerting%20validated-success.svg)](#current-project-status)
 
 # ⚡ Chaos Engineering Sandbox — DevOps, Kubernetes & Observability Project
 
@@ -42,6 +42,7 @@ This project demonstrates how a small microservices-style application can be con
 - [Observability with Prometheus and Grafana](#observability-with-prometheus-and-grafana)
 - [Grafana Dashboard](#grafana-dashboard)
 - [Dependency Health Metric](#dependency-health-metric)
+- [Prometheus Alerting Rules](#prometheus-alerting-rules)
 - [Screenshots / Evidence](#screenshots--evidence)
 - [Incident Reports](#incident-reports)
 - [GitHub Actions CI](#github-actions-ci)
@@ -102,6 +103,9 @@ The project has completed local Docker, Docker Compose, CI, Kubernetes deploymen
 | Dependency health metric | Added and validated |
 | Grafana Dependency Health panel | Added |
 | Redis failure metric validation | Passed — Redis changed from `1.0` to `0.0` and recovered to `1.0` |
+| Prometheus alerting rules | Added and validated |
+| RedisDown alert validation | Passed — alert fired after Redis failure and returned to OK after recovery |
+| Alert rules documentation | Added |
 | Incident-style resilience reports | 6 reports completed |
 | Current API image version | `chaos-api:0.3.0` |
 | Current API replicas in Kubernetes | `2` |
@@ -196,6 +200,7 @@ The goal is to build a portfolio project that demonstrates practical skills rele
 | **Live Availability Test** | Sends requests while deleting one API pod |
 | **Reusable Test Script** | Automates request checks and prints success/failure summary |
 | **Prometheus Monitoring** | Scrapes and stores API metrics |
+| **Prometheus Alerting Rules** | Detects dependency failure, high latency, and API 5xx errors |
 | **Dependency Health Metric** | Exposes PostgreSQL and Redis health as Prometheus Gauge values |
 | **Grafana Dashboard** | Visualises request count, request rate, latency, and active requests |
 | **Incident Reports** | Documents failure tests, results, lessons learned, and improvements |
@@ -1133,6 +1138,69 @@ This improves troubleshooting because the system can now show which dependency i
 
 ---
 
+## 🚨 Prometheus Alerting Rules
+
+Prometheus alerting rules were added to move the project from observability into basic operational alerting.
+
+Alert rule file:
+
+```text
+observability/prometheus/rules/alerts.yml
+```
+
+Prometheus config:
+
+```text
+observability/prometheus/prometheus.yml
+```
+
+Configured alerts:
+
+| Alert | Purpose | Severity |
+|---|---|---|
+| `RedisDown` | Fires when Redis dependency health is `0` | warning |
+| `PostgresDown` | Fires when PostgreSQL dependency health is `0` | critical |
+| `ApiHighLatency` | Fires when 95th percentile API latency is above 1 second | warning |
+| `ApiHighErrorRate` | Fires when API returns HTTP 5xx responses | critical |
+
+The alerts use the existing API metrics, including:
+
+```promql
+chaos_api_dependency_up
+```
+
+RedisDown validation flow:
+
+```text
+Redis stopped
+ ↓
+/ready returned not_ready
+ ↓
+chaos_api_dependency_up{dependency="redis"} changed from 1.0 to 0.0
+ ↓
+Prometheus evaluated RedisDown
+ ↓
+RedisDown alert fired after 15 seconds
+ ↓
+Redis restarted
+ ↓
+Metric returned to 1.0
+ ↓
+Alert returned to OK
+```
+
+Screenshot evidence:
+
+![Prometheus RedisDown Alert](docs/screenshots/prometheus-redisdown-alert.png)
+
+Documentation:
+
+[docs/observability/prometheus-alerting-rules.md](docs/observability/prometheus-alerting-rules.md)
+
+This milestone shows that the project can now detect dependency failure automatically through Prometheus alert rules instead of relying only on manual checks.
+
+---
+
 ## 🖼️ Screenshots / Evidence
 
 Visual evidence is included to show the application monitoring stack and failure testing results.
@@ -1143,6 +1211,7 @@ Visual evidence is included to show the application monitoring stack and failure
 | ![Prometheus Query](docs/screenshots/prometheus-query.png) | Prometheus query showing API metrics scraped from the FastAPI `/metrics` endpoint |
 | ![PostgreSQL Failure Readiness](docs/screenshots/postgresql-failure-readiness.png) | Terminal evidence showing `/ready` changing to `not_ready` during PostgreSQL failure and recovering to `ready` |
 | ![Dependency Health Panel](docs/screenshots/dependency-health-panel.png) | Grafana panel showing PostgreSQL and Redis dependency health using the `chaos_api_dependency_up` Prometheus metric |
+| ![Prometheus RedisDown Alert](docs/screenshots/prometheus-redisdown-alert.png) | Prometheus alert evidence showing the `RedisDown` alert firing after Redis became unreachable |
 
 These screenshots help make the project easier to review by showing the system behavior visually instead of only describing it in text.
 
@@ -1214,9 +1283,11 @@ chaos-engineering-sandbox/
 │   │   ├── dependency-health-panel.png
 │   │   ├── grafana-dashboard.png
 │   │   ├── postgresql-failure-readiness.png
-│   │   └── prometheus-query.png
+│   │   ├── prometheus-query.png
+│   │   └── prometheus-redisdown-alert.png
 │   ├── observability/
-│   │   └── dependency-health-metric.md
+│   │   ├── dependency-health-metric.md
+│   │   └── prometheus-alerting-rules.md
 │   └── incident-reports/
 │       ├── 01-redis-manual-failure-test.md
 │       ├── 02-kubernetes-api-pod-failure-test.md
@@ -1236,7 +1307,9 @@ chaos-engineering-sandbox/
 │   └── check_api_availability.sh
 ├── observability/
 │   ├── prometheus/
-│   │   └── prometheus.yml
+│   │   ├── prometheus.yml
+│   │   └── rules/
+│   │       └── alerts.yml
 │   └── grafana/
 │       ├── dashboards/
 │       │   └── chaos-api-observability-dashboard.json
@@ -1271,6 +1344,7 @@ chaos-engineering-sandbox/
 | Availability Testing | 60-request live test during pod failure |
 | Scripting | Bash availability test script |
 | Monitoring | Prometheus metrics scraping |
+| Alerting | Prometheus rules for dependency failure, latency, and 5xx errors |
 | Dashboarding | Grafana dashboard panels |
 | Recovery Analysis | Kubernetes desired state and pod recreation |
 | Resilience Improvement | API scaled from 1 replica to 2 replicas |
@@ -1284,8 +1358,12 @@ chaos-engineering-sandbox/
 
 Planned next steps:
 
+- Validate `PostgresDown` alert.
+- Validate `ApiHighLatency` alert.
+- Validate `ApiHighErrorRate` alert.
+- Add Alertmanager integration.
+
 - Add faster dependency polling for failure experiments.
-- Add Prometheus alerting for dependency readiness.
 - Add Grafana alerting for Redis and PostgreSQL connectivity.
 - Add dashboard screenshots to documentation.
 - Add Prometheus alerting rules.
@@ -1497,6 +1575,10 @@ Add screenshot evidence for monitoring and failure results
 Add dependency health metric for PostgreSQL and Redis
  ↓
 Validate Redis failure metric change from 1 to 0 and back to 1
+ ↓
+Add Prometheus alert rules
+ ↓
+Validate RedisDown alert firing and recovery
 ```
 
 This makes the project more than a basic deployment exercise.
