@@ -77,3 +77,11 @@ def test_metrics_endpoint():
     assert "chaos_api_http_requests_total" in response.text
     assert "chaos_api_http_request_duration_seconds" in response.text
     assert "chaos_api_http_requests_in_progress" in response.text
+
+def test_simulate_error_endpoint():
+    response = client.get("/simulate-error")
+
+    assert response.status_code == 500
+    data = response.json()
+
+    assert data["detail"] == "Simulated API error for alert validation"

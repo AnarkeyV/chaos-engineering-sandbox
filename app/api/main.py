@@ -5,7 +5,7 @@ import time
 
 import psycopg
 import redis
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import Response
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
@@ -199,6 +199,13 @@ def simulate_work(delay: float = 0.2):
         "delay_seconds": safe_delay,
         "timestamp": utc_timestamp(),
     }
+
+@app.get("/simulate-error")
+def simulate_error():
+    raise HTTPException(
+        status_code=500,
+        detail="Simulated API error for alert validation",
+    )
 
 
 @app.get("/metrics")
