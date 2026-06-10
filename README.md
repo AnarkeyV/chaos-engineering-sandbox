@@ -8,7 +8,7 @@
 [![PostgreSQL](https://img.shields.io/badge/postgresql-kubernetes%20failure%20test-336791.svg)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/redis-kubernetes%20failure%20test-DC382D.svg)](https://redis.io/)
 [![Availability Test](https://img.shields.io/badge/availability%20test-100%25%20success-success.svg)](#reusable-availability-test-script)
-[![Status](https://img.shields.io/badge/project-dependency%20failure%20testing-success.svg)](#current-project-status)
+[![Status](https://img.shields.io/badge/project-observability%20metrics%20updated-success.svg)](#current-project-status)
 
 # ⚡ Chaos Engineering Sandbox — DevOps, Kubernetes & Observability Project
 
@@ -41,6 +41,7 @@ This project demonstrates how a small microservices-style application can be con
 - [Reusable Availability Test Script](#reusable-availability-test-script)
 - [Observability with Prometheus and Grafana](#observability-with-prometheus-and-grafana)
 - [Grafana Dashboard](#grafana-dashboard)
+- [Dependency Health Metric](#dependency-health-metric)
 - [Screenshots / Evidence](#screenshots--evidence)
 - [Incident Reports](#incident-reports)
 - [GitHub Actions CI](#github-actions-ci)
@@ -98,6 +99,9 @@ The project has completed local Docker, Docker Compose, CI, Kubernetes deploymen
 | Grafana observability dashboard | Completed |
 | Dashboard JSON export | Completed |
 | Screenshot evidence | Added |
+| Dependency health metric | Added and validated |
+| Grafana Dependency Health panel | Added |
+| Redis failure metric validation | Passed — Redis changed from `1.0` to `0.0` and recovered to `1.0` |
 | Incident-style resilience reports | 6 reports completed |
 | Current API image version | `chaos-api:0.3.0` |
 | Current API replicas in Kubernetes | `2` |
@@ -192,6 +196,7 @@ The goal is to build a portfolio project that demonstrates practical skills rele
 | **Live Availability Test** | Sends requests while deleting one API pod |
 | **Reusable Test Script** | Automates request checks and prints success/failure summary |
 | **Prometheus Monitoring** | Scrapes and stores API metrics |
+| **Dependency Health Metric** | Exposes PostgreSQL and Redis health as Prometheus Gauge values |
 | **Grafana Dashboard** | Visualises request count, request rate, latency, and active requests |
 | **Incident Reports** | Documents failure tests, results, lessons learned, and improvements |
 
@@ -348,6 +353,7 @@ Improve system design
 | `chaos_api_http_requests_total` | Counts API requests by method, endpoint, and status code |
 | `chaos_api_http_request_duration_seconds` | Tracks request latency |
 | `chaos_api_http_requests_in_progress` | Shows current in-progress API requests |
+| `chaos_api_dependency_up` | Shows PostgreSQL and Redis dependency health using `1` for reachable and `0` for unreachable |
 
 ---
 
@@ -1065,6 +1071,68 @@ for i in {1..5}; do curl http://127.0.0.1:8000/simulate-work; echo; done
 
 ---
 
+## 🧭 Dependency Health Metric
+
+A new Prometheus Gauge metric was added to expose direct dependency health.
+
+Metric name:
+
+```text
+chaos_api_dependency_up
+```
+
+Metric meaning:
+
+| Value | Meaning |
+|---|---|
+| `1` | Dependency is reachable |
+| `0` | Dependency is unreachable |
+
+Healthy state:
+
+```text
+chaos_api_dependency_up{dependency="postgres"} 1.0
+chaos_api_dependency_up{dependency="redis"} 1.0
+```
+
+Redis failure validation:
+
+```text
+chaos_api_dependency_up{dependency="postgres"} 1.0
+chaos_api_dependency_up{dependency="redis"} 0.0
+```
+
+Redis recovery validation:
+
+```text
+chaos_api_dependency_up{dependency="postgres"} 1.0
+chaos_api_dependency_up{dependency="redis"} 1.0
+```
+
+Grafana dashboard panel:
+
+```text
+Dependency Health
+```
+
+Prometheus query used:
+
+```promql
+avg by (dependency) (chaos_api_dependency_up)
+```
+
+Documentation:
+
+[docs/observability/dependency-health-metric.md](docs/observability/dependency-health-metric.md)
+
+Screenshot evidence:
+
+![Dependency Health Panel](docs/screenshots/dependency-health-panel.png)
+
+This improves troubleshooting because the system can now show which dependency is unhealthy instead of only showing that the API is not ready.
+
+---
+
 ## 🖼️ Screenshots / Evidence
 
 Visual evidence is included to show the application monitoring stack and failure testing results.
@@ -1074,6 +1142,7 @@ Visual evidence is included to show the application monitoring stack and failure
 | ![Grafana Dashboard](docs/screenshots/grafana-dashboard.png) | Grafana dashboard showing API request count, request rate, endpoint traffic, latency, and in-progress requests |
 | ![Prometheus Query](docs/screenshots/prometheus-query.png) | Prometheus query showing API metrics scraped from the FastAPI `/metrics` endpoint |
 | ![PostgreSQL Failure Readiness](docs/screenshots/postgresql-failure-readiness.png) | Terminal evidence showing `/ready` changing to `not_ready` during PostgreSQL failure and recovering to `ready` |
+| ![Dependency Health Panel](docs/screenshots/dependency-health-panel.png) | Grafana panel showing PostgreSQL and Redis dependency health using the `chaos_api_dependency_up` Prometheus metric |
 
 These screenshots help make the project easier to review by showing the system behavior visually instead of only describing it in text.
 
@@ -1142,9 +1211,12 @@ chaos-engineering-sandbox/
 │   ├── project-roadmap.md
 │   ├── kubernetes-local-deployment.md
 │   ├── screenshots/
+│   │   ├── dependency-health-panel.png
 │   │   ├── grafana-dashboard.png
 │   │   ├── postgresql-failure-readiness.png
 │   │   └── prometheus-query.png
+│   ├── observability/
+│   │   └── dependency-health-metric.md
 │   └── incident-reports/
 │       ├── 01-redis-manual-failure-test.md
 │       ├── 02-kubernetes-api-pod-failure-test.md
@@ -1213,8 +1285,8 @@ chaos-engineering-sandbox/
 Planned next steps:
 
 - Add faster dependency polling for failure experiments.
-- Add API-level metric for dependency readiness.
-- Add custom Redis and PostgreSQL connectivity metrics.
+- Add Prometheus alerting for dependency readiness.
+- Add Grafana alerting for Redis and PostgreSQL connectivity.
 - Add dashboard screenshots to documentation.
 - Add Prometheus alerting rules.
 - Add Grafana alerting.
@@ -1421,6 +1493,10 @@ Compare dependency failure behaviour
 Document resilience and dependency failure testing
  ↓
 Add screenshot evidence for monitoring and failure results
+ ↓
+Add dependency health metric for PostgreSQL and Redis
+ ↓
+Validate Redis failure metric change from 1 to 0 and back to 1
 ```
 
 This makes the project more than a basic deployment exercise.

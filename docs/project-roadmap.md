@@ -35,7 +35,7 @@ The goal is not only to prove that an application works, but to show how it beha
 | Milestone 5 — Observability with Prometheus and Grafana | Completed |
 | Milestone 6 — Dependency failure testing | Completed |
 | Milestone 7 — Screenshot evidence and README polish | Completed |
-| Milestone 8 — Alerting and reliability metrics | Planned |
+| Milestone 8 — Dependency health metrics and alerting | In progress — Part 1 completed |
 | Milestone 9 — Automated chaos experiments | Planned |
 | Milestone 10 — Cloud deployment extension | Planned |
 | Milestone 11 — Final case study report | Planned |
@@ -408,38 +408,163 @@ The README now includes visual proof of monitoring and failure testing results, 
 
 ---
 
-## Milestone 8 — Alerting and Reliability Metrics
+## Milestone 8 — Dependency Health Metrics and Alerting
 
 ### Status
 
-Planned
+In progress — Part 1 completed
 
 ### Objective
 
-Add alerting and reliability-focused signals so the project moves from observation to notification.
+Move the project from basic observability toward reliability-focused metrics and alerting.
 
-### Planned Work
+The first part of this milestone adds a direct dependency health metric so Prometheus and Grafana can show whether PostgreSQL and Redis are reachable.
 
-- Add Prometheus alerting rules.
-- Add alert for API readiness failures.
+---
+
+### Part 1 — Dependency Health Metric
+
+#### Status
+
+Completed
+
+#### Completed Work
+
+- Added new Prometheus Gauge metric.
+- Updated `/ready` so dependency checks refresh the metric.
+- Validated healthy metric state.
+- Stopped Redis manually to validate unhealthy metric state.
+- Restarted Redis and confirmed metric recovery.
+- Added Grafana Dependency Health panel.
+- Exported updated Grafana dashboard JSON.
+- Added screenshot evidence.
+- Added observability documentation.
+- Confirmed GitHub Actions passed.
+
+#### Metric Name
+
+```text
+chaos_api_dependency_up
+```
+
+#### Metric Meaning
+
+| Value | Meaning |
+|---|---|
+| `1` | Dependency is reachable |
+| `0` | Dependency is unreachable |
+
+#### Healthy State
+
+```text
+chaos_api_dependency_up{dependency="postgres"} 1.0
+chaos_api_dependency_up{dependency="redis"} 1.0
+```
+
+#### Redis Failure State
+
+```text
+chaos_api_dependency_up{dependency="postgres"} 1.0
+chaos_api_dependency_up{dependency="redis"} 0.0
+```
+
+#### Redis Recovery State
+
+```text
+chaos_api_dependency_up{dependency="postgres"} 1.0
+chaos_api_dependency_up{dependency="redis"} 1.0
+```
+
+#### Grafana Panel
+
+Panel name:
+
+```text
+Dependency Health
+```
+
+Prometheus query:
+
+```promql
+avg by (dependency) (chaos_api_dependency_up)
+```
+
+#### Key Files
+
+```text
+app/api/main.py
+observability/grafana/dashboards/chaos-api-observability-dashboard.json
+docs/observability/dependency-health-metric.md
+docs/screenshots/dependency-health-panel.png
+```
+
+#### Outcome
+
+The system can now show which dependency is unhealthy through Prometheus and Grafana.
+
+This improves troubleshooting because the operator can distinguish between:
+
+```text
+API process is down
+API is alive but not ready
+PostgreSQL is unreachable
+Redis is unreachable
+```
+
+---
+
+### Part 2 — Alerting Rules
+
+#### Status
+
+Planned
+
+#### Planned Work
+
+- Add Prometheus alert rule for Redis dependency failure.
+- Add Prometheus alert rule for PostgreSQL dependency failure.
+- Add alert for API readiness failure.
 - Add alert for high request latency.
 - Add alert for failed HTTP requests.
 - Add Grafana alerting.
-- Add dashboard panels for readiness failure count.
-- Add dependency status metrics for PostgreSQL and Redis.
-- Add MTTR measurement notes.
+- Add alert documentation.
+- Add screenshots of alert firing state.
+- Add alert recovery validation.
 
-### Possible New Metrics
+#### Expected Outcome
+
+The system should be able to show when a dependency is unhealthy and provide an alert signal that could notify an operator.
+
+---
+
+### Part 3 — Reliability Metrics
+
+#### Status
+
+Planned
+
+#### Planned Work
+
+- Add readiness status metric.
+- Add dependency check duration metric.
+- Add MTTR measurement notes.
+- Add dashboard panels for dependency history.
+- Add dashboard panels for readiness failure count.
+
+#### Possible Future Metrics
 
 | Metric | Purpose |
 |---|---|
-| `chaos_api_dependency_up` | Shows whether PostgreSQL and Redis are reachable |
 | `chaos_api_readiness_status` | Shows whether the API is ready |
 | `chaos_api_dependency_check_duration_seconds` | Measures dependency check latency |
+| `chaos_api_dependency_failures_total` | Counts dependency failures |
 
-### Expected Outcome
+### Overall Milestone 8 Outcome So Far
 
-The system should be able to show not only what happened, but also when an operator should be alerted.
+Milestone 8 Part 1 is complete.
+
+The project now has dependency-specific health metrics and a Grafana Dependency Health panel.
+
 
 ---
 
@@ -534,7 +659,7 @@ The project can be presented clearly in interviews, LinkedIn posts, portfolio we
 | Kubernetes | Kind, Deployments, Services, probes |
 | Reliability Testing | API pod failure, Redis failure, PostgreSQL failure |
 | Availability Testing | 60/60 successful request test |
-| Observability | Prometheus metrics and Grafana dashboard |
+| Observability | Prometheus metrics, dependency health metric, and Grafana dashboard |
 | Incident Documentation | Six incident reports |
 | Scripting | Reusable Bash availability test script |
 | Portfolio Communication | README, screenshots, roadmap, reports |
@@ -562,7 +687,9 @@ Redis dependency failure testing
 PostgreSQL dependency failure testing
 Reusable availability testing script
 Prometheus metrics
+Dependency health metric
 Grafana dashboard
+Grafana Dependency Health panel
 Screenshot evidence
 Six incident reports
 Updated README and roadmap documentation
@@ -572,22 +699,15 @@ Updated README and roadmap documentation
 
 ## Recommended Next Step
 
-The recommended next milestone is:
+The recommended next step is:
 
 ```text
-Milestone 8 — Alerting and Reliability Metrics
+Milestone 8 Part 2 — Prometheus Alerting Rules
 ```
 
 This would build naturally on the current observability work.
 
-The strongest next improvement would be to add a dependency metric such as:
-
-```text
-chaos_api_dependency_up{dependency="postgres"}
-chaos_api_dependency_up{dependency="redis"}
-```
-
-This would allow Grafana and Prometheus to show dependency health directly instead of only inferring dependency failure from `/ready`.
+The strongest next improvement would be to add Prometheus alerting rules for Redis and PostgreSQL dependency failures using the new `chaos_api_dependency_up` metric.
 
 ---
 
