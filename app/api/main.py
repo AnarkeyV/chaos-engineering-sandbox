@@ -35,6 +35,12 @@ REQUEST_LATENCY = Histogram(
     ["method", "endpoint"],
 )
 
+DEPENDENCY_UP = Gauge(
+    "chaos_api_dependency_up",
+    "Dependency health status where 1 means reachable and 0 means unreachable",
+    ["dependency"],
+)
+
 IN_PROGRESS_REQUESTS = Gauge(
     "chaos_api_http_requests_in_progress",
     "Number of HTTP requests currently being processed by the Chaos API",
@@ -131,6 +137,14 @@ def health_check():
 def readiness_check():
     postgres_status = check_postgres()
     redis_status = check_redis()
+
+    DEPENDENCY_UP.labels(dependency="postgres").set(
+        1 if postgres_status["status"] == "reachable" else 0
+    )
+
+    DEPENDENCY_UP.labels(dependency="redis").set(
+        1 if redis_status["status"] == "reachable" else 0
+    )
 
     is_ready = (
         postgres_status["status"] == "reachable"

@@ -27,7 +27,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Shows the total number of HTTP requests received by the Chaos API.",
+      "description": "Shows PostgreSQL and Redis dependency health. 1 means reachable and 0 means unreachable.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -56,7 +56,7 @@
         "x": 0,
         "y": 0
       },
-      "id": 1,
+      "id": 7,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -77,13 +77,9 @@
       "pluginVersion": "11.4.0",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum(chaos_api_http_requests_total)",
+          "expr": "avg by (dependency) (chaos_api_dependency_up)",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -92,7 +88,7 @@
           "useBackend": false
         }
       ],
-      "title": "Total API Requests",
+      "title": "Dependency Health",
       "type": "stat"
     },
     {
@@ -198,7 +194,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Shows the number of API requests currently being processed.",
+      "description": "Shows the total number of HTTP requests received by the Chaos API.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -227,7 +223,7 @@
         "x": 0,
         "y": 8
       },
-      "id": 6,
+      "id": 1,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -248,9 +244,13 @@
       "pluginVersion": "11.4.0",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "chaos_api_http_requests_in_progress",
+          "expr": "sum(chaos_api_http_requests_total)",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -259,7 +259,7 @@
           "useBackend": false
         }
       ],
-      "title": "In-Progress Requests",
+      "title": "Total API Requests",
       "type": "stat"
     },
     {
@@ -365,44 +365,11 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Shows the 95th percentile request latency for each API endpoint.",
+      "description": "Shows the number of API requests currently being processed.",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+            "mode": "thresholds"
           },
           "mappings": [],
           "thresholds": {
@@ -417,8 +384,7 @@
                 "value": 80
               }
             ]
-          },
-          "unit": "s"
+          }
         },
         "overrides": []
       },
@@ -428,25 +394,30 @@
         "x": 0,
         "y": 16
       },
-      "id": 5,
+      "id": 6,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
       "pluginVersion": "11.4.0",
       "targets": [
         {
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "histogram_quantile(0.95, sum(rate(chaos_api_http_request_duration_seconds_bucket[1m])) by (le, endpoint))",
+          "expr": "chaos_api_http_requests_in_progress",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -455,8 +426,8 @@
           "useBackend": false
         }
       ],
-      "title": "95th Percentile Request Latency",
-      "type": "timeseries"
+      "title": "In-Progress Requests",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -551,6 +522,104 @@
       ],
       "title": "Requests by Endpoint",
       "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "description": "Shows the 95th percentile request latency for each API endpoint.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "expr": "histogram_quantile(0.95, sum(rate(chaos_api_http_request_duration_seconds_bucket[1m])) by (le, endpoint))",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "95th Percentile Request Latency",
+      "type": "timeseries"
     }
   ],
   "preload": false,
@@ -567,6 +636,6 @@
   "timezone": "browser",
   "title": "Chaos API Observability Dashboard",
   "uid": "efo7lkd0hnym8f",
-  "version": 8,
+  "version": 9,
   "weekStart": ""
 }
